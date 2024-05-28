@@ -1,13 +1,15 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common'
-import { ModminService } from './modmin.service'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { Response } from 'express'
 import { Role } from '@prisma/client'
 import { Roles } from 'src/role.decorator'
-import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { AuthGuard } from '@nestjs/passport'
-import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
+import { ModminService } from './modmin.service'
+import { RolesGuard } from 'src/jwt/jwt-auth.guard'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { CreateModeratorDTO } from 'src/auth/dto/moderator.dto'
-import { Response } from 'express'
+import {
+  Body, Controller, Get, Param, Patch, Post, Query, Req, Res, UseGuards
+} from '@nestjs/common'
+import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
 
 @ApiTags("Modmin")
 @Controller('modmin')
