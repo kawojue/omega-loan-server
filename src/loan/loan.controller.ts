@@ -1,17 +1,18 @@
+import { Response } from 'express'
+import { Role } from '@prisma/client'
 import {
   Body, Controller, Delete, Get, Param,
+  Patch,
   Post, Put, Query, Req, Res, UseGuards,
 } from '@nestjs/common'
+import { Roles } from 'src/role.decorator'
 import { LoanService } from './loan.service'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
-import { Response } from 'express'
-import { LoanCategoryDTO } from './dto/loan-catogory.dto'
-import { InfiniteScrollDTO } from 'src/customer/dto/infinite-scroll.dto'
 import { AuthGuard } from '@nestjs/passport'
 import { RolesGuard } from 'src/jwt/jwt-auth.guard'
-import { Roles } from 'src/role.decorator'
-import { Role } from '@prisma/client'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { LoanApplicationDTO } from './dto/apply-loan.dto'
+import { LoanCategoryDTO } from './dto/loan-catogory.dto'
+import { InfiniteScrollDTO } from 'src/customer/dto/infinite-scroll.dto'
 
 @ApiTags("Loan")
 @ApiBearerAuth()
@@ -57,7 +58,7 @@ export class LoanController {
     await this.loanService.removeLoanCategory(res, categoryId)
   }
 
-  @Post('/apply/customerId')
+  @Post('/apply/:customerId')
   async applyLoanApplication(
     @Req() req: IRequest,
     @Res() res: Response,
@@ -65,5 +66,14 @@ export class LoanController {
     @Param('customerId') customerId: string
   ) {
     await this.loanService.applyLoanApplication(res, customerId, req.user, body)
+  }
+
+  @Patch('/toogle-status/:loanId')
+  async toggleLoanStatus(
+    @Req() req: IRequest,
+    @Res() res: Response,
+    @Param('loanId') loanId: string
+  ) {
+    await this.loanService.toggleLoanStatus(res, loanId, req.user)
   }
 }

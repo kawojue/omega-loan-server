@@ -165,4 +165,36 @@ export class LoanService {
             this.misc.handleServerError(res, err)
         }
     }
+
+    async toggleLoanStatus(
+        res: Response,
+        loanId: string,
+        { sub, role }: ExpressUser,
+    ) {
+        const loan = await this.prisma.loanApplication.findUnique({
+            where: role === "Admin" ? {
+                id: loanId
+            } : {
+                modminId: sub,
+                id: loanId
+            }
+        })
+
+        if (!loan) {
+            return this.response.sendError(res, StatusCodes.UnprocessableEntity, "Loan not found or access denied")
+        }
+
+        const newLoan = await this.prisma.loanApplication.update({
+            where: { id: loanId },
+            data: {
+                remarks: loan.remarks === "PENDING" ? "PAID" : "PENDING"
+            }
+        })
+
+        this.response.sendSuccess(res, StatusCodes.OK, { data: newLoan })
+    }
+
+    async fetchLoans(
+        res: Response
+    ) { }
 }
