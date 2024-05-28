@@ -5,6 +5,9 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -31,6 +34,7 @@
     "bcrypt": "^5.1.1",
     "buffer-to-stream": "^1.0.0",
     "cloudinary": "^2.2.0",
+    "mongodb": "^6.6.2",
     "multer": "^1.4.5-lts.1",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.1.13",

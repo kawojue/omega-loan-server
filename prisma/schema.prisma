@@ -24,7 +24,7 @@ model Customer {
     photographUrl    String?
     guarantors       Guarantor[]
     entry_date       DateTime?         @default(now())
-    modmin           ModMin?
+    modmin           Modmin?
     status           UserStatus
     loanApplications LoanApplication[]
 }
@@ -49,7 +49,7 @@ model Guarantor {
     guranted_for      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
-model ModMin {
+model Modmin {
     id         String     @id @default(auto()) @map("_id") @db.ObjectId
     email      String     @unique
     surname    String
