@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common'
-import { StatusCodes } from 'enums/statusCodes'
 import { Response } from 'express'
-import { EncryptionService } from 'lib/encryption.service'
+import { Injectable } from '@nestjs/common'
 import { MiscService } from 'lib/misc.service'
+import { StatusCodes } from 'enums/statusCodes'
 import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
+import { EncryptionService } from 'lib/encryption.service'
 import { CreateModeratorDTO } from 'src/auth/dto/moderator.dto'
 import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
 
@@ -159,5 +159,32 @@ export class ModminService {
         })
 
         this.response.sendSuccess(res, StatusCodes.OK, { data: moderators })
+    }
+
+    async toggleStatus(
+        res: Response,
+        moderatorId: string,
+        { sub }: ExpressUser,
+    ) {
+        const modmin = await this.prisma.modmin.findUnique({
+            where: { id: moderatorId }
+        })
+
+        if (!modmin) {
+            return this.response.sendError(res, StatusCodes.NotFound, "Moderator or Admin not found")
+        }
+
+        if (modmin.id === sub) {
+            return this.response.sendError(res, StatusCodes.BadRequest, "You can't disable yourself")
+        }
+
+        const newModmin = await this.prisma.modmin.update({
+            where: { id: moderatorId },
+            data: {
+                status: modmin.status === "active" ? 'suspended' : 'active'
+            }
+        })
+
+        this.response.sendSuccess(res, StatusCodes.OK, { data: newModmin })
     }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Res, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common'
 import { ModminService } from './modmin.service'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { Role } from '@prisma/client'
@@ -44,6 +44,7 @@ export class ModminController {
     await this.modminService.addModerator(res, body)
   }
 
+  @ApiBearerAuth()
   @Get('/moderators/dropdown')
   @Roles(Role.Admin)
   async guarantorsDropdown(
@@ -51,5 +52,16 @@ export class ModminController {
     @Query() query: SearchDTO,
   ) {
     await this.modminService.moderatorsDropdown(res, query)
+  }
+
+  @ApiBearerAuth()
+  @Roles(Role.Admin)
+  @Patch('/toggle-status')
+  async toggleStatus(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Param('moderatorId') moderatorId: string,
+  ) {
+    await this.modminService.toggleStatus(res, moderatorId, req.user)
   }
 }
