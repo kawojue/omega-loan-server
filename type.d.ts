@@ -14,7 +14,7 @@ interface IRequest extends Request {
 interface JwtPayload {
     sub: string
     role: Roles
-    userStatus?: UserStatus
+    status?: UserStatus
 }
 
 interface CloudinaryModuleOptions {
