@@ -14,6 +14,7 @@ model Customer {
     role             Role              @default(User)
     email            String            @unique
     address          String?
+    gender           Gender?
     membership_fee   String            @default("0")
     cardUrl          String?
     nationality      String?
@@ -24,9 +25,12 @@ model Customer {
     photographUrl    String?
     guarantors       Guarantor[]
     entry_date       DateTime?         @default(now())
-    modmin           Modmin?
     status           UserStatus
+    modmin           Modmin            @relation(fields: [modminId], references: [id], onDelete: Cascade)
+    modminId         String            @db.ObjectId
     loanApplications LoanApplication[]
+    createdAt        DateTime          @default(now())
+    updatedAt        DateTime          @updatedAt
 }
 
 model Guarantor {
@@ -47,6 +51,8 @@ model Guarantor {
     photographUrl     String?
     customerId        String   @db.ObjectId
     guranted_for      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+    createdAt         DateTime @default(now())
+    updatedAt         DateTime @updatedAt
 }
 
 model Modmin {
@@ -58,8 +64,9 @@ model Modmin {
     gender     Gender
     role       Role
     status     UserStatus
-    customer   Customer?  @relation(fields: [customerId], references: [id])
-    customerId String     @unique @db.ObjectId
+    customers  Customer[]
+    createdAt  DateTime   @default(now())
+    updatedAt  DateTime   @updatedAt
 }
 
 model LoanCategory {
