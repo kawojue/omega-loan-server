@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common'
 import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { CustomerService } from './customer.service'
-import { CreateCustomerDto } from './dto/customer.dto'
+import { CreateCustomerDTO } from './dto/customer.dto'
 import { InfiniteScrollDTO, SearchDTO } from './dto/infinite-scroll.dto'
 import { FileFieldsInterceptor } from '@nestjs/platform-express'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
@@ -36,7 +36,7 @@ export class CustomerController {
       cardImage?: Express.Multer.File[]
       photograph?: Express.Multer.File[]
     },
-    @Body() customerDto: CreateCustomerDto,
+    @Body() customerDto: CreateCustomerDTO,
   ) {
     await this.customerService.createCustomer(res, req.user, customerDto, files.cardImage[0], files.photograph[0])
   }
