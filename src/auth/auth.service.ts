@@ -1,10 +1,10 @@
+import { Response } from 'express'
 import { Injectable } from '@nestjs/common'
 import { MiscService } from 'lib/misc.service'
+import { StatusCodes } from 'enums/statusCodes'
 import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
 import { EncryptionService } from 'lib/encryption.service'
-import { Response } from 'express'
-import { StatusCodes } from 'enums/statusCodes'
 
 @Injectable()
 export class AuthService {
@@ -29,11 +29,10 @@ export class AuthService {
                 return this.response.sendError(res, StatusCodes.Forbidden, "Account has been suspended")
             }
 
-
             const isMatch = await this.encryption.compareAsync(password, modmin.password)
 
             if (!isMatch) {
-
+                return this.response.sendError(res, StatusCodes.Unauthorized, "Incorrect password")
             }
 
             const access_token = await this.misc.generateNewAccessToken({
