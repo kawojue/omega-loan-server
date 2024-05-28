@@ -97,7 +97,7 @@ export class CustomerService {
     async fetchCustomers(
         res: Response,
         {
-            limit, page, search = ''
+            limit = 20, page = 1, search = ''
         }: InfiniteScrollDTO,
         { sub, role }: ExpressUser,
     ) {
@@ -172,7 +172,7 @@ export class CustomerService {
     async fetchAllGuarantors(
         res: Response,
         {
-            limit, page, search = ''
+            limit = 20, page = 1, search = ''
         }: InfiniteScrollDTO,
         { sub, role }: ExpressUser,
     ) {
@@ -241,7 +241,7 @@ export class CustomerService {
     async fetchCustomerGuarantors(
         res: Response,
         {
-            limit, page, search = ''
+            limit = 20, page = 1, search = ''
         }: InfiniteScrollDTO,
         { sub, role }: ExpressUser,
         customerId: string,

@@ -10,6 +10,8 @@ import { EncryptionService } from 'lib/encryption.service'
 import { CustomerModule } from './customer/customer.module'
 import cloudinaryConfig from './cloudinary/cloudinary.config'
 import { CloudinaryModule } from './cloudinary/cloudinary.module'
+import { LoanModule } from './loan/loan.module';
+import { ModminModule } from './modmin/modmin.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module'
     CloudinaryModule,
     AuthModule,
     CustomerModule,
+    LoanModule,
+    ModminModule,
   ],
   controllers: [AppController],
   providers: [
