@@ -7,7 +7,7 @@ import { PrismaService } from 'lib/prisma.service'
 import { CreateCustomerDto } from './dto/customer.dto'
 import { ResponseService } from 'lib/response.service'
 import { EncryptionService } from 'lib/encryption.service'
-import { InfiniteScrollDTO } from './dto/infinite-scroll.dto'
+import { InfiniteScrollDTO, SearchDTO } from './dto/infinite-scroll.dto'
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service'
 
 @Injectable()
@@ -310,5 +310,64 @@ export class CustomerService {
         } catch (err) {
             this.misc.handleServerError(res, err)
         }
+    }
+
+    async customersDropdown(
+        res: Response,
+        { search }: SearchDTO,
+        { role, sub }: ExpressUser
+    ) {
+        const customers = await this.prisma.customer.findMany({
+            where: role === "Admin" ? {
+                OR: [
+                    { email: { contains: search, mode: 'insensitive' } },
+                    { surname: { contains: search, mode: 'insensitive' } },
+                    { otherNames: { contains: search, mode: 'insensitive' } },
+                ]
+            } : {
+                OR: [
+                    { email: { contains: search, mode: 'insensitive' } },
+                    { surname: { contains: search, mode: 'insensitive' } },
+                    { otherNames: { contains: search, mode: 'insensitive' } },
+                ],
+                modminId: sub,
+            },
+            select: {
+                id: true,
+                email: true,
+                surname: true,
+                otherNames: true,
+            }
+        })
+
+        this.response.sendSuccess(res, StatusCodes.OK, { data: customers })
+    }
+
+    async guarantorsDropdown(
+        res: Response,
+        { search }: SearchDTO,
+        { role, sub }: ExpressUser
+    ) {
+        const guarantors = await this.prisma.guarantor.findMany({
+            where: role === "Admin" ? {
+                OR: [
+                    { email: { contains: search, mode: 'insensitive' } },
+                    { name: { contains: search, mode: 'insensitive' } },
+                ]
+            } : {
+                OR: [
+                    { email: { contains: search, mode: 'insensitive' } },
+                    { name: { contains: search, mode: 'insensitive' } },
+                ],
+                guranted_for: { modminId: sub },
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+            }
+        })
+
+        this.response.sendSuccess(res, StatusCodes.OK, { data: guarantors })
     }
 }

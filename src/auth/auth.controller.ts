@@ -7,7 +7,7 @@ import { Role } from '@prisma/client'
 import { Roles } from 'src/role.decorator'
 import { AuthGuard } from '@nestjs/passport'
 import { RolesGuard } from 'src/jwt/jwt-auth.guard'
-import { InfiniteScrollDTO } from 'src/customer/dto/infinite-scroll.dto'
+import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
 import { CreateModeratorDTO } from './dto/moderator.dto'
 
 ApiTags("Auth")
@@ -40,5 +40,14 @@ export class AuthController {
     @Body() body: CreateModeratorDTO
   ) {
     await this.authService.addModerator(res, body)
+  }
+
+  @Get('/moderators/dropdown')
+  @Roles(Role.Admin)
+  async guarantorsDropdown(
+    @Res() res: Response,
+    @Query() query: SearchDTO,
+  ) {
+    await this.authService.moderatorsDropdown(res, query)
   }
 }

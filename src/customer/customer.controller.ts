@@ -9,7 +9,7 @@ import {
 import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { CustomerService } from './customer.service'
 import { CreateCustomerDto } from './dto/customer.dto'
-import { InfiniteScrollDTO } from './dto/infinite-scroll.dto'
+import { InfiniteScrollDTO, SearchDTO } from './dto/infinite-scroll.dto'
 import { FileFieldsInterceptor } from '@nestjs/platform-express'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 
@@ -51,6 +51,16 @@ export class CustomerController {
     await this.customerService.fetchCustomers(res, query, req.user)
   }
 
+  @Get('/dropdown')
+  @Roles(Role.Admin, Role.Moderator)
+  async customersDropdown(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Query() query: SearchDTO,
+  ) {
+    await this.customerService.customersDropdown(res, query, req.user)
+  }
+
   @Get('/fetch/:customerId')
   @Roles(Role.Admin, Role.Moderator)
   async fetchCustomer(
@@ -69,6 +79,16 @@ export class CustomerController {
     @Query() query: InfiniteScrollDTO
   ) {
     await this.customerService.fetchAllGuarantors(res, query, req.user)
+  }
+
+  @Get('/guarantors/dropdown')
+  @Roles(Role.Admin, Role.Moderator)
+  async guarantorsDropdown(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Query() query: SearchDTO,
+  ) {
+    await this.customerService.guarantorsDropdown(res, query, req.user)
   }
 
   @ApiOperation({

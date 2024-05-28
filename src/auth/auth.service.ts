@@ -6,7 +6,7 @@ import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
 import { CreateModeratorDTO } from './dto/moderator.dto'
 import { EncryptionService } from 'lib/encryption.service'
-import { InfiniteScrollDTO } from 'src/customer/dto/infinite-scroll.dto'
+import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
 
 @Injectable()
 export class AuthService {
@@ -137,5 +137,29 @@ export class AuthService {
         } catch (err) {
             this.misc.handleServerError(res, err)
         }
+    }
+
+    async moderatorsDropdown(
+        res: Response,
+        { search }: SearchDTO,
+    ) {
+        const moderators = await this.prisma.modmin.findMany({
+            where: {
+                role: 'Admin',
+                OR: [
+                    { email: { contains: search, mode: 'insensitive' } },
+                    { surname: { contains: search, mode: 'insensitive' } },
+                    { otherNames: { contains: search, mode: 'insensitive' } },
+                ]
+            },
+            select: {
+                id: true,
+                email: true,
+                surname: true,
+                otherNames: true,
+            }
+        })
+
+        this.response.sendSuccess(res, StatusCodes.OK, { data: moderators })
     }
 }
