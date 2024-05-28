@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common'
-import { ModminService } from './modmin.service'
-import { ModminController } from './modmin.controller'
-import { PassportModule } from '@nestjs/passport'
 import { JwtModule } from '@nestjs/jwt'
 import { MiscService } from 'lib/misc.service'
+import { ModminService } from './modmin.service'
+import { PassportModule } from '@nestjs/passport'
 import { PrismaService } from 'lib/prisma.service'
+import { ModminController } from './modmin.controller'
 import { ResponseService } from 'lib/response.service'
 import { EncryptionService } from 'lib/encryption.service'
 

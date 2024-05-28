@@ -35,7 +35,7 @@ export class ModminService {
 
             password = await this.encryption.hashAsync(password)
 
-            const moderator = await this.prisma.modmin.create({
+            await this.prisma.modmin.create({
                 data: {
                     role: 'Admin',
                     status: 'active',
@@ -45,7 +45,6 @@ export class ModminService {
             })
 
             this.response.sendSuccess(res, StatusCodes.OK, {
-                data: moderator,
                 message: "Admin created successfully"
             })
         } catch (err) {

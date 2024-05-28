@@ -1,8 +1,7 @@
-import { Global, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { JwtStrategy } from './jwt.strategy'
 import { JwtModule as NestJwtModule } from '@nestjs/jwt'
 
-@Global()
 @Module({
     imports: [
         NestJwtModule.register({

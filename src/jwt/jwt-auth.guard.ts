@@ -22,7 +22,9 @@ export class RolesGuard implements CanActivate {
         if (!token) return false
 
         try {
-            const decoded = this.jwtService.verify(token)
+            const decoded = this.jwtService.verify(token, {
+                secret: process.env.JWT_SECRET
+            })
             if (decoded?.sub && decoded.role === 'user') {
                 return this.prisma.modmin.findUnique({
                     where: {

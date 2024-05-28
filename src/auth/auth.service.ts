@@ -5,15 +5,24 @@ import { StatusCodes } from 'enums/statusCodes'
 import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
 import { EncryptionService } from 'lib/encryption.service'
+import { JwtService } from '@nestjs/jwt'
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly misc: MiscService,
         private readonly prisma: PrismaService,
+        private readonly jwtService: JwtService,
         private readonly response: ResponseService,
         private readonly encryption: EncryptionService,
     ) { }
+
+    async generateNewAccessToken({ sub, role, status }: JwtPayload) {
+        return await this.jwtService.signAsync({ sub, role, status }, {
+            secret: process.env.JWT_SECRET,
+            expiresIn: '1d'
+        })
+    }
 
     async login(res: Response, { email, password }) {
         try {
@@ -35,10 +44,10 @@ export class AuthService {
                 return this.response.sendError(res, StatusCodes.Unauthorized, "Incorrect password")
             }
 
-            const access_token = await this.misc.generateNewAccessToken({
+            const access_token = await this.generateNewAccessToken({
                 sub: modmin.id,
                 role: modmin.role,
-            })
+            },)
 
             this.response.sendSuccess(res, StatusCodes.OK, {
                 message: "Login Successful",
