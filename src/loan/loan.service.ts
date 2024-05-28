@@ -6,6 +6,7 @@ import { LoanCategoryDTO } from './dto/loan-catogory.dto'
 import { StatusCodes } from 'enums/statusCodes'
 import { Response } from 'express'
 import { InfiniteScrollDTO } from 'src/customer/dto/infinite-scroll.dto'
+import { LoanApplicationDTO } from './dto/apply-loan.dto'
 
 @Injectable()
 export class LoanService {
@@ -98,5 +99,70 @@ export class LoanService {
             data: { loanCategories },
             metadata: { length, totalPages }
         })
+    }
+
+    async applyLoanApplication(
+        res: Response,
+        customerId: string,
+        { sub }: ExpressUser,
+        dto: LoanApplicationDTO
+    ) {
+        try {
+            const customer = await this.prisma.customer.findUnique({
+                where: { id: customerId }
+            })
+
+            if (!customer) {
+                return this.response.sendError(res, StatusCodes.NotFound, "Customer not found")
+            }
+
+            const {
+                loanType,
+                loanAmount,
+                managementFee,
+                applicationFee,
+                equity,
+                disbursedDate,
+                loanTenure,
+                preLoanAmount,
+                preLoanTenure,
+                officeAddress,
+                salaryDate,
+                salaryAmount,
+                bankName,
+                bankAccNumber,
+                outstandingLoans,
+            } = dto
+
+
+            const parsedDisbursedDate = new Date(disbursedDate)
+            const parsedSalaryDate = salaryDate ? new Date(salaryDate) : null
+
+            const application = await this.prisma.loanApplication.create({
+                data: {
+                    loanType,
+                    loanAmount,
+                    managementFee,
+                    applicationFee,
+                    equity,
+                    loanTenure,
+                    preLoanAmount,
+                    preLoanTenure,
+                    officeAddress,
+                    salaryAmount,
+                    bankName,
+                    bankAccNumber,
+                    outstandingLoans,
+                    salaryDate: parsedSalaryDate,
+                    disbursedDate: parsedDisbursedDate,
+                    modmin: { connect: { id: sub } },
+                    customer: { connect: { id: customerId } },
+                }
+            })
+
+            this.response.sendSuccess(res, StatusCodes.OK, { data: application })
+        } catch (err) {
+            this.misc.handleServerError(res, err)
+        }
     }
 }

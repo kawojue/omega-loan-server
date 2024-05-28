@@ -56,17 +56,18 @@ model Guarantor {
 }
 
 model Modmin {
-    id         String     @id @default(auto()) @map("_id") @db.ObjectId
-    email      String     @unique
-    surname    String
-    otherNames String
-    password   String
-    gender     Gender
-    role       Role
-    status     UserStatus
-    customers  Customer[]
-    createdAt  DateTime   @default(now())
-    updatedAt  DateTime   @updatedAt
+    id               String            @id @default(auto()) @map("_id") @db.ObjectId
+    email            String            @unique
+    surname          String
+    otherNames       String
+    password         String
+    gender           Gender
+    role             Role
+    status           UserStatus
+    customers        Customer[]
+    loanApplications LoanApplication[]
+    createdAt        DateTime          @default(now())
+    updatedAt        DateTime          @updatedAt
 }
 
 model LoanCategory {
@@ -78,12 +79,12 @@ model LoanCategory {
 }
 
 model LoanApplication {
-    id               String    @id @default(auto()) @map("_id") @db.ObjectId
+    id               String     @id @default(auto()) @map("_id") @db.ObjectId
     loanType         LoanType?
-    loanAmount       Float     @default(0.0)
-    managementFee    Float?    @default(0.0)
-    applicationFee   Float?    @default(3000.0)
-    equity           Float?    @default(0.0)
+    loanAmount       Float      @default(0.0)
+    managementFee    Float?     @default(0.0)
+    applicationFee   Float?     @default(3000.0)
+    equity           Float?     @default(0.0)
     disbursedDate    DateTime
     loanTenure       String
     preLoanAmount    Float?
@@ -94,12 +95,13 @@ model LoanApplication {
     bankName         String?
     bankAccNumber    String?
     outstandingLoans YesNo?
-    remarks          String    @default("pending")
-    moderatorId      String
-    user             Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
-    customerId       String    @db.ObjectId
-    createdAt        DateTime  @default(now())
-    updatedAt        DateTime  @updatedAt
+    remarks          LoanRemark @default(PENDING)
+    modmin           Modmin     @relation(references: [id], fields: [modminId])
+    modminId         String     @db.ObjectId
+    customer         Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+    customerId       String     @db.ObjectId
+    createdAt        DateTime   @default(now())
+    updatedAt        DateTime   @updatedAt
 }
 
 enum Role {
@@ -134,4 +136,9 @@ enum YesNo {
 enum UserStatus {
     active
     suspended
+}
+
+enum LoanRemark {
+    PAID
+    PENDING
 }

@@ -1,4 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common'
+import {
+  Body, Controller, Delete, Get, Param,
+  Post, Put, Query, Req, Res, UseGuards,
+} from '@nestjs/common'
 import { LoanService } from './loan.service'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { Response } from 'express'
@@ -8,6 +11,7 @@ import { AuthGuard } from '@nestjs/passport'
 import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { Roles } from 'src/role.decorator'
 import { Role } from '@prisma/client'
+import { LoanApplicationDTO } from './dto/apply-loan.dto'
 
 @ApiTags("Loan")
 @ApiBearerAuth()
@@ -51,5 +55,15 @@ export class LoanController {
     @Param('categoryId') categoryId: string
   ) {
     await this.loanService.removeLoanCategory(res, categoryId)
+  }
+
+  @Post('/apply/customerId')
+  async applyLoanApplication(
+    @Req() req: IRequest,
+    @Res() res: Response,
+    @Body() body: LoanApplicationDTO,
+    @Param('customerId') customerId: string
+  ) {
+    await this.loanService.applyLoanApplication(res, customerId, req.user, body)
   }
 }
