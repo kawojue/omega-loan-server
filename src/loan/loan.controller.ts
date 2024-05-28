@@ -8,11 +8,13 @@ import {
 import { Roles } from 'src/role.decorator'
 import { LoanService } from './loan.service'
 import { AuthGuard } from '@nestjs/passport'
+import {
+  InfiniteScrollDTO, SearchDTO
+} from 'src/customer/dto/infinite-scroll.dto'
 import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { LoanApplicationDTO } from './dto/apply-loan.dto'
 import { LoanCategoryDTO } from './dto/loan-catogory.dto'
-import { InfiniteScrollDTO } from 'src/customer/dto/infinite-scroll.dto'
 
 @ApiTags("Loan")
 @ApiBearerAuth()
@@ -75,5 +77,23 @@ export class LoanController {
     @Param('loanId') loanId: string
   ) {
     await this.loanService.toggleLoanStatus(res, loanId, req.user)
+  }
+
+  @Get('/fetch')
+  async fetchLoans(
+    @Req() req: IRequest,
+    @Res() res: Response,
+    @Query() query: InfiniteScrollDTO
+  ) {
+    await this.loanService.fetchLoans(res, req.user, query)
+  }
+
+  @Get('/dropdown')
+  async fetchLoansDropdown(
+    @Req() req: IRequest,
+    @Res() res: Response,
+    @Query() query: SearchDTO
+  ) {
+    await this.loanService.fetchLoansDropdown(res, query, req.user)
   }
 }

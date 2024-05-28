@@ -11,7 +11,7 @@ import { Transform } from 'class-transformer'
 import { Gender, cardType } from '.prisma/client'
 import { titleText, toLowerCase } from 'helpers/transformer'
 
-export class CreateCustomerDto {
+export class CreateCustomerDTO {
     @ApiProperty({ example: 'Kawojue', required: true })
     @MinLength(3)
     @IsString()

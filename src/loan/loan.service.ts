@@ -5,7 +5,7 @@ import { ResponseService } from 'lib/response.service'
 import { LoanCategoryDTO } from './dto/loan-catogory.dto'
 import { StatusCodes } from 'enums/statusCodes'
 import { Response } from 'express'
-import { InfiniteScrollDTO } from 'src/customer/dto/infinite-scroll.dto'
+import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
 import { LoanApplicationDTO } from './dto/apply-loan.dto'
 
 @Injectable()
@@ -195,6 +195,151 @@ export class LoanService {
     }
 
     async fetchLoans(
-        res: Response
-    ) { }
+        res: Response,
+        { sub, role }: ExpressUser,
+        {
+            limit = 20, page = 1, search = ''
+        }: InfiniteScrollDTO,
+    ) {
+        try {
+            page = Number(page)
+            limit = Number(limit)
+            search = search?.trim() ?? ''
+            const offset = (page - 1) * limit
+
+            const OR: ({
+                customer: {
+                    email: {
+                        contains: string
+                        mode: "insensitive"
+                    }
+                }
+            } | {
+                customer: {
+                    surname: {
+                        contains: string
+                        mode: "insensitive"
+                    }
+                }
+            } | {
+                customer: {
+                    otherNames: {
+                        contains: string
+                        mode: "insensitive"
+                    }
+                }
+            })[] = [
+                    { customer: { email: { contains: search, mode: 'insensitive' } } },
+                    { customer: { surname: { contains: search, mode: 'insensitive' } } },
+                    { customer: { otherNames: { contains: search, mode: 'insensitive' } } },
+                ]
+
+            const loans = await this.prisma.loanApplication.findMany({
+                where: role === "Admin" ? { OR } : {
+                    modminId: sub,
+                    OR,
+                },
+                select: {
+                    id: true,
+                    loanType: true,
+                    createdAt: true,
+                    loanTenure: true,
+                    disbursedDate: true,
+                    managementFee: true,
+                    applicationFee: true,
+                    customer: {
+                        select: {
+                            id: true,
+                            email: true,
+                            surname: true,
+                            telephone: true,
+                            otherNames: true,
+                        }
+                    },
+                },
+                take: limit,
+                skip: offset,
+                orderBy: { updatedAt: 'desc' }
+            })
+
+            const length = await this.prisma.loanApplication.count({
+                where: role === "Admin" ? { OR } : {
+                    modminId: sub,
+                    OR,
+                }
+            })
+
+            const totalPages = Math.ceil(length / limit)
+
+            this.response.sendSuccess(res, StatusCodes.OK, {
+                data: loans,
+                metadata: { length, totalPages }
+            })
+        } catch (err) {
+            this.misc.handleServerError(res, err)
+        }
+    }
+
+    async fetchLoansDropdown(
+        res: Response,
+        { search }: SearchDTO,
+        { sub, role }: ExpressUser,
+    ) {
+        search = search?.trim() ?? ''
+
+        const OR: ({
+            customer: {
+                email: {
+                    contains: string
+                    mode: "insensitive"
+                }
+            }
+        } | {
+            customer: {
+                surname: {
+                    contains: string
+                    mode: "insensitive"
+                }
+            }
+        } | {
+            customer: {
+                otherNames: {
+                    contains: string
+                    mode: "insensitive"
+                }
+            }
+        })[] = [
+                { customer: { email: { contains: search, mode: 'insensitive' } } },
+                { customer: { surname: { contains: search, mode: 'insensitive' } } },
+                { customer: { otherNames: { contains: search, mode: 'insensitive' } } },
+            ]
+
+        const loans = await this.prisma.loanApplication.findMany({
+            where: role === "Admin" ? { OR } : {
+                modminId: sub,
+                OR,
+            },
+            select: {
+                id: true,
+                loanType: true,
+                createdAt: true,
+                loanTenure: true,
+                disbursedDate: true,
+                managementFee: true,
+                applicationFee: true,
+                customer: {
+                    select: {
+                        id: true,
+                        email: true,
+                        surname: true,
+                        telephone: true,
+                        otherNames: true,
+                    }
+                },
+            },
+            orderBy: { updatedAt: 'desc' }
+        })
+
+        this.response.sendSuccess(res, StatusCodes.OK, { data: loans })
+    }
 }

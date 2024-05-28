@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common'
 import { MiscService } from 'lib/misc.service'
 import { StatusCodes } from 'enums/statusCodes'
 import { PrismaService } from 'lib/prisma.service'
-import { CreateCustomerDto } from './dto/customer.dto'
+import { CreateCustomerDTO } from './dto/customer.dto'
 import { ResponseService } from 'lib/response.service'
 import { EncryptionService } from 'lib/encryption.service'
 import { InfiniteScrollDTO, SearchDTO } from './dto/infinite-scroll.dto'
@@ -23,7 +23,7 @@ export class CustomerService {
     async createCustomer(
         res: Response,
         { sub }: ExpressUser,
-        customerDto: CreateCustomerDto,
+        customerDto: CreateCustomerDTO,
         cardImage: Express.Multer.File,
         photograph: Express.Multer.File,
     ) {
