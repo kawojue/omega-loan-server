@@ -1,0 +1,128 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mongodb"
+    url      = env("DATABASE_URI")
+}
+
+model Customer {
+    id               String            @id @default(auto()) @map("_id") @db.ObjectId
+    surname          String
+    otherNames       String
+    role             Role              @default(User)
+    email            String            @unique
+    address          String?
+    membership_fee   String            @default("0")
+    cardUrl          String?
+    nationality      String?
+    cardType         cardType?
+    homeAddress      String?
+    officeAddress    String?
+    telephone        String?
+    photographUrl    String?
+    guarantors       Guarantor[]
+    entry_date       DateTime?         @default(now())
+    modmin           ModMin?
+    status           UserStatus
+    loanApplications LoanApplication[]
+}
+
+model Guarantor {
+    id                String   @id @default(auto()) @map("_id") @db.ObjectId
+    name              String
+    email             String   @unique
+    address           String
+    gender            Gender?
+    cardType          String?
+    cardUrl           String?
+    nationality       String?
+    placeOfWork       String?
+    addressOfBusiness String?
+    homeAddress       String?
+    telephone1        String?
+    telephone2        String?
+    positionHeld      String?
+    photographUrl     String?
+    customerId        String   @db.ObjectId
+    guranted_for      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model ModMin {
+    id         String     @id @default(auto()) @map("_id") @db.ObjectId
+    email      String     @unique
+    surname    String
+    otherNames String
+    password   String
+    gender     Gender
+    role       Role
+    status     UserStatus
+    customer   Customer?  @relation(fields: [customerId], references: [id])
+    customerId String     @unique @db.ObjectId
+}
+
+model LoanCategory {
+    id     String @id @default(auto()) @map("_id") @db.ObjectId
+    name   String
+    amount Float? @default(0.0)
+}
+
+model LoanApplication {
+    id               String    @id @default(auto()) @map("_id") @db.ObjectId
+    loanType         LoanType?
+    loanAmount       Float     @default(0.0)
+    managementFee    Float?    @default(0.0)
+    applicationFee   Float?    @default(3000.0)
+    equity           Float?    @default(0.0)
+    disbursedDate    DateTime
+    loanTenure       String
+    preLoanAmount    Float?
+    preLoanTenure    String?
+    officeAddress    String
+    salaryDate       DateTime?
+    salaryAmount     Float?
+    bankName         String?
+    bankAccNumber    String?
+    outstandingLoans YesNo?
+    remarks          String    @default("pending")
+    moderatorId      String
+    user             Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+    customerId       String    @db.ObjectId
+    createdAt        DateTime  @default(now())
+    updatedAt        DateTime  @updatedAt
+}
+
+enum Role {
+    User
+    Moderator
+    Admin
+}
+
+enum Gender {
+    Male
+    Female
+}
+
+enum LoanType {
+    SalaryLoan
+    AssetFinancing
+    SME
+}
+
+enum cardType {
+    NIN
+    VotersCard
+    DriversLicense
+    InternationalPassport
+}
+
+enum YesNo {
+    Yes
+    No
+}
+
+enum UserStatus {
+    active
+    suspended
+}
