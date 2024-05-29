@@ -235,6 +235,12 @@ export class ModminService {
         { sub, role }: ExpressUser
     ) {
         try {
+            const totalModerators = role === "Admin" ? await this.prisma.modmin.count({
+                where: {
+                    role: 'Moderator'
+                }
+            }) : null
+
             const totalCustomers = await this.prisma.customer.count({
                 where: role === "Admin" ? {} : { modminId: sub }
             })
@@ -263,10 +269,11 @@ export class ModminService {
                 (totalExpensesResult._sum.equity || 0)
 
             const data = {
+                totalExpenses,
                 totalCustomers,
                 totalGuarantors,
+                totalModerators,
                 totalLoanApplications,
-                totalExpenses,
             }
 
             this.response.sendSuccess(res, StatusCodes.OK, { data })

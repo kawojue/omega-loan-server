@@ -229,6 +229,7 @@ export class GuarantorService {
                 take: limit,
                 orderBy: { updatedAt: 'desc' },
                 select: {
+                    id: true,
                     name: true,
                     email: true,
                     address: true,
@@ -301,6 +302,7 @@ export class GuarantorService {
                 take: limit,
                 orderBy: { updatedAt: 'desc' },
                 select: {
+                    id: true,
                     name: true,
                     email: true,
                     address: true,
