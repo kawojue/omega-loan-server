@@ -274,4 +274,52 @@ export class ModminService {
             this.misc.handleServerError(res, err)
         }
     }
+
+    async deleteModmin(
+        res: Response,
+        modminId: string,
+        { sub }: ExpressUser
+    ) {
+        try {
+            const admin = await this.prisma.modmin.findUnique({
+                where: { id: sub },
+            })
+
+            if (!admin) {
+                return this.response.sendError(res, StatusCodes.NotFound, "Admin not found")
+            }
+
+            const modminToDelete = await this.prisma.modmin.findUnique({
+                where: { id: modminId },
+                include: {
+                    customers: true,
+                },
+            })
+
+            if (!modminToDelete) {
+                return this.response.sendError(res, StatusCodes.NotFound, `Moderator not found`)
+            }
+
+            const customerIds = modminToDelete.customers.map(customer => customer.id)
+
+            if (customerIds.length) {
+                await this.prisma.customer.updateMany({
+                    where: { id: { in: customerIds } },
+                    data: {
+                        modminId: admin.id,
+                    },
+                })
+            }
+
+            await this.prisma.modmin.delete({
+                where: { id: modminToDelete.id },
+            })
+
+            this.response.sendSuccess(res, StatusCodes.OK, {
+                message: `${modminToDelete.role} deleted and customers reassigned to you`,
+            })
+        } catch (err) {
+            this.misc.handleServerError(res, err)
+        }
+    }
 }

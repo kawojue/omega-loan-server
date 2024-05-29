@@ -7,7 +7,7 @@ import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { CreateModeratorDTO } from './dto/moderator.dto'
 import {
-  Body, Controller, Get, Param, Patch, Post, Put, Query, Req, Res, UseGuards
+  Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Req, Res, UseGuards
 } from '@nestjs/common'
 import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
 import { UpdateCustomerDTO } from 'src/customer/dto/customer.dto'
@@ -87,5 +87,15 @@ export class ModminController {
     @Req() req: IRequest,
   ) {
     await this.modminService.analytics(res, req.user)
+  }
+
+  @Delete('/remove/:modminId')
+  @Roles(Role.Admin)
+  async deleteModmin(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Param('modminId') modminId: string
+  ) {
+    await this.modminService.deleteModmin(res, modminId, req.user)
   }
 }
