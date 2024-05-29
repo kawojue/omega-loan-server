@@ -55,6 +55,8 @@ export class AuthService {
                 data: {
                     role: modmin.role,
                     email: modmin.email,
+                    surname: modmin.surname,
+                    otherNames: modmin.otherNames,
                 },
                 access_token,
             })

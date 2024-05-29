@@ -78,4 +78,14 @@ export class ModminController {
   ) {
     await this.modminService.toggleStatus(res, moderatorId, req.user)
   }
+
+  @ApiBearerAuth()
+  @Roles(Role.Admin)
+  @Get('/analytics')
+  async analytics(
+    @Res() res: Response,
+    @Req() req: IRequest,
+  ) {
+    await this.modminService.analytics(res, req.user)
+  }
 }
