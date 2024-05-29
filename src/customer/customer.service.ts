@@ -36,6 +36,8 @@ export class CustomerService {
                 return this.response.sendError(res, serializedPhotographImage.status, serializedPhotographImage.message)
             }
 
+            console.log(serializedPhotographImage, serializedCardImage)
+
             const header = {
                 folder: 'OmegaLoan',
                 resource_type: 'image',
