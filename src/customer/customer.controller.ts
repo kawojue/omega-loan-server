@@ -10,16 +10,20 @@ import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { CustomerService } from './customer.service'
 import { CreateCustomerDTO } from './dto/customer.dto'
 import { FileFieldsInterceptor } from '@nestjs/platform-express'
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { InfiniteScrollDTO, SearchDTO } from './dto/infinite-scroll.dto'
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger'
 
 @ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'), RolesGuard)
 @ApiTags("Customer")
 @Controller('customer')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) { }
 
+  @ApiConsumes('image/png', 'image/jpeg')
+  @ApiOperation({
+    summary: 'cardImage, photograph'
+  })
   @Post('/create')
   @UseInterceptors(
     FileFieldsInterceptor([
