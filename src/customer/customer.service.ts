@@ -264,6 +264,7 @@ export class CustomerService {
                 take: limit,
                 skip: offset,
                 select: {
+                    id: true,
                     email: true,
                     status: true,
                     gender: true,
