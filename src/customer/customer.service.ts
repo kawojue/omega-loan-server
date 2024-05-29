@@ -7,8 +7,8 @@ import { PrismaService } from 'lib/prisma.service'
 import { CreateCustomerDTO } from './dto/customer.dto'
 import { ResponseService } from 'lib/response.service'
 import { EncryptionService } from 'lib/encryption.service'
-import { InfiniteScrollDTO, SearchDTO } from './dto/infinite-scroll.dto'
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service'
+import { InfiniteScrollDTO, SearchDTO } from './dto/infinite-scroll.dto'
 
 @Injectable()
 export class CustomerService {

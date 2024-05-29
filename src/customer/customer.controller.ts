@@ -9,9 +9,9 @@ import {
 import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { CustomerService } from './customer.service'
 import { CreateCustomerDTO } from './dto/customer.dto'
-import { InfiniteScrollDTO, SearchDTO } from './dto/infinite-scroll.dto'
 import { FileFieldsInterceptor } from '@nestjs/platform-express'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { InfiniteScrollDTO, SearchDTO } from './dto/infinite-scroll.dto'
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'), RolesGuard)

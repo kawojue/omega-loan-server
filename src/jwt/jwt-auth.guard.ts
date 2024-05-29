@@ -1,14 +1,14 @@
-import { JwtService } from '@nestjs/jwt'
 import { Reflector } from '@nestjs/core'
+import { MiscService } from 'lib/misc.service'
 import { PrismaService } from 'lib/prisma.service'
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common'
 
 @Injectable()
 export class RolesGuard implements CanActivate {
     constructor(
-        private reflector: Reflector,
         private prisma: PrismaService,
-        private jwtService: JwtService,
+        private reflector: Reflector,
+        private misc: MiscService,
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -22,19 +22,17 @@ export class RolesGuard implements CanActivate {
         if (!token) return false
 
         try {
-            const decoded = this.jwtService.verify(token, {
-                secret: process.env.JWT_SECRET
-            })
-            if (decoded?.sub && decoded.role === 'user') {
+            const decoded = await this.misc.validateAndDecodeToken(token)
+            console.log(decoded)
+            if (decoded?.sub) {
                 return this.prisma.modmin.findUnique({
-                    where: {
-                        id: decoded.sub
-                    }
+                    where: { id: decoded.sub }
                 }).then(user => {
                     if ((decoded.status !== user.status) || (decoded.status === 'suspended')) return false
                     request.user = decoded
                     return roles.includes(decoded.role)
-                }).catch(_ => {
+                }).catch(err => {
+                    console.error(err)
                     return false
                 })
             }

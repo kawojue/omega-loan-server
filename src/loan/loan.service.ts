@@ -1,12 +1,12 @@
+import { Response } from 'express'
 import { Injectable } from '@nestjs/common'
 import { MiscService } from 'lib/misc.service'
+import { StatusCodes } from 'enums/statusCodes'
 import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
 import { LoanCategoryDTO } from './dto/loan-catogory.dto'
-import { StatusCodes } from 'enums/statusCodes'
-import { Response } from 'express'
-import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
 import { LoanApplicationDTO } from './dto/apply-loan.dto'
+import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
 
 @Injectable()
 export class LoanService {

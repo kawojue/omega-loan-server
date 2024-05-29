@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common'
-import { LoanService } from './loan.service'
-import { LoanController } from './loan.controller'
 import { JwtModule } from '@nestjs/jwt'
-import { PrismaService } from 'lib/prisma.service'
-import { PassportModule } from '@nestjs/passport'
-import { ResponseService } from 'lib/response.service'
+import { LoanService } from './loan.service'
 import { MiscService } from 'lib/misc.service'
+import { PassportModule } from '@nestjs/passport'
+import { LoanController } from './loan.controller'
+import { PrismaService } from 'lib/prisma.service'
+import { ResponseService } from 'lib/response.service'
 
 @Module({
   imports: [

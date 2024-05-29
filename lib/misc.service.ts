@@ -6,15 +6,10 @@ import { ResponseService } from './response.service'
 
 @Injectable()
 export class MiscService {
-
     constructor(
         private readonly jwtService: JwtService,
         private readonly response: ResponseService,
     ) { }
-
-    async generateNewAccessToken({ sub, role, status }: JwtPayload) {
-        return await this.jwtService.signAsync({ sub, role, status })
-    }
 
     handleServerError(res: Response, err?: any, msg?: string) {
         console.error(err)
@@ -24,7 +19,7 @@ export class MiscService {
     async validateAndDecodeToken(token: string) {
         try {
             return await this.jwtService.verifyAsync(token, {
-                secret: process.env.HANDLE_ENCRYPTION_KEY
+                secret: process.env.JWT_SECRET
             })
         } catch (err) {
             console.error(err)

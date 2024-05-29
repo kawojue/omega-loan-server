@@ -1,8 +1,8 @@
 import { Response } from 'express'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { ApiTags } from '@nestjs/swagger'
 import { LoginDTO } from './dto/auth.dto'
 import { AuthService } from './auth.service'
-import { Body, Controller, Get, Post, Query, Req, Res, UseGuards } from '@nestjs/common'
+import { Body, Controller, Post, Res } from '@nestjs/common'
 
 ApiTags("Auth")
 @Controller('auth')

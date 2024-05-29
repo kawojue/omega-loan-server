@@ -47,7 +47,8 @@ export class AuthService {
             const access_token = await this.generateNewAccessToken({
                 sub: modmin.id,
                 role: modmin.role,
-            },)
+                status: modmin.status,
+            })
 
             this.response.sendSuccess(res, StatusCodes.OK, {
                 message: "Login Successful",
