@@ -4,8 +4,8 @@ import { MiscService } from 'lib/misc.service'
 import { StatusCodes } from 'enums/statusCodes'
 import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
-import { CreateModeratorDTO, UpdateModeratorDTO } from './dto/moderator.dto'
 import { EncryptionService } from 'lib/encryption.service'
+import { CreateModeratorDTO, UpdateModeratorDTO } from './dto/moderator.dto'
 import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
 
 @Injectable()
