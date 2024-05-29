@@ -60,7 +60,7 @@ export class LoanController {
     await this.loanService.removeLoanCategory(res, categoryId)
   }
 
-  @Post('/application/apply/:customerId')
+  @Post('/apply/:customerId')
   async applyLoanApplication(
     @Req() req: IRequest,
     @Res() res: Response,
@@ -70,7 +70,7 @@ export class LoanController {
     await this.loanService.applyLoanApplication(res, customerId, req.user, body)
   }
 
-  @Patch('/application/toogle-status/:loanId')
+  @Patch('/toogle-status/:loanId')
   async toggleLoanStatus(
     @Req() req: IRequest,
     @Res() res: Response,
@@ -79,7 +79,7 @@ export class LoanController {
     await this.loanService.toggleLoanStatus(res, loanId, req.user)
   }
 
-  @Get('/application/fetch')
+  @Get('/fetch')
   async fetchLoans(
     @Req() req: IRequest,
     @Res() res: Response,
@@ -88,7 +88,7 @@ export class LoanController {
     await this.loanService.fetchLoans(res, req.user, query)
   }
 
-  @Get('/application/dropdown')
+  @Get('/dropdown')
   async fetchLoansDropdown(
     @Req() req: IRequest,
     @Res() res: Response,
