@@ -229,4 +229,49 @@ export class ModminService {
 
         this.response.sendSuccess(res, StatusCodes.OK, { data: newModmin })
     }
+
+    async analytics(
+        res: Response,
+        { sub, role }: ExpressUser
+    ) {
+        try {
+            const totalCustomers = await this.prisma.customer.count({
+                where: role === "Admin" ? {} : { modminId: sub }
+            })
+
+            const totalGuarantors = await this.prisma.guarantor.count({
+                where: role === "Admin" ? {} : { customer: { modminId: sub } }
+            })
+
+            const totalLoanApplications = await this.prisma.loanApplication.count({
+                where: role === "Admin" ? {} : { customer: { modminId: sub } }
+            })
+
+            const totalExpensesResult = await this.prisma.loanApplication.aggregate({
+                where: role === "Admin" ? {} : { customer: { modminId: sub } },
+                _sum: {
+                    loanAmount: true,
+                    managementFee: true,
+                    applicationFee: true,
+                    equity: true,
+                },
+            })
+
+            const totalExpenses = (totalExpensesResult._sum.loanAmount || 0) +
+                (totalExpensesResult._sum.managementFee || 0) +
+                (totalExpensesResult._sum.applicationFee || 0) +
+                (totalExpensesResult._sum.equity || 0)
+
+            const data = {
+                totalCustomers,
+                totalGuarantors,
+                totalLoanApplications,
+                totalExpenses,
+            }
+
+            this.response.sendSuccess(res, StatusCodes.OK, { data })
+        } catch (err) {
+            this.misc.handleServerError(res, err)
+        }
+    }
 }
