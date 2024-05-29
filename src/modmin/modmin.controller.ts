@@ -49,6 +49,7 @@ export class ModminController {
   @ApiBearerAuth()
   @Put('/moderators/:moderatorId')
   @Roles(Role.Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   async updateModerator(
     @Res() res: Response,
     @Body() body: UpdateModeratorDTO,
@@ -60,6 +61,7 @@ export class ModminController {
   @ApiBearerAuth()
   @Get('/moderators/dropdown')
   @Roles(Role.Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   async moderatorsDropdown(
     @Res() res: Response,
     @Query() query: SearchDTO,
@@ -70,6 +72,7 @@ export class ModminController {
   @ApiBearerAuth()
   @Roles(Role.Admin)
   @Patch('/toggle-status')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   async toggleStatus(
     @Res() res: Response,
     @Req() req: IRequest,
@@ -81,6 +84,7 @@ export class ModminController {
   @ApiBearerAuth()
   @Roles(Role.Admin)
   @Get('/analytics')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   async analytics(
     @Res() res: Response,
     @Req() req: IRequest,
@@ -90,6 +94,7 @@ export class ModminController {
 
   @Delete('/remove/:modminId')
   @Roles(Role.Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   async deleteModmin(
     @Res() res: Response,
     @Req() req: IRequest,
