@@ -268,6 +268,7 @@ export class CustomerService {
                     status: true,
                     gender: true,
                     surname: true,
+                    telephone: true,
                     otherNames: true,
                     homeAddress: true,
                     membership_fee: true,
