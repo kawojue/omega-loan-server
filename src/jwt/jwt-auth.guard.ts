@@ -23,7 +23,6 @@ export class RolesGuard implements CanActivate {
 
         try {
             const decoded = await this.misc.validateAndDecodeToken(token)
-            console.log(decoded)
             if (decoded?.sub) {
                 return this.prisma.modmin.findUnique({
                     where: { id: decoded.sub }

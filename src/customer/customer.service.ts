@@ -6,7 +6,6 @@ import { StatusCodes } from 'enums/statusCodes'
 import { PrismaService } from 'lib/prisma.service'
 import { CreateCustomerDTO } from './dto/customer.dto'
 import { ResponseService } from 'lib/response.service'
-import { EncryptionService } from 'lib/encryption.service'
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service'
 import { InfiniteScrollDTO, SearchDTO } from './dto/infinite-scroll.dto'
 
@@ -17,7 +16,6 @@ export class CustomerService {
         private readonly prisma: PrismaService,
         private readonly response: ResponseService,
         private readonly cloudinary: CloudinaryService,
-        private readonly encryption: EncryptionService,
     ) { }
 
     async createCustomer(
@@ -28,10 +26,6 @@ export class CustomerService {
         photograph: Express.Multer.File,
     ) {
         try {
-            if (!cardImage || !photograph) {
-                return this.response.sendError(res, StatusCodes.BadRequest, "Photograph & Means of ID are required")
-            }
-
             const serializedCardImage = validateFile(cardImage, 3 << 20, 'jpg', 'png')
             if (serializedCardImage?.status) {
                 return this.response.sendError(res, serializedCardImage.status, serializedCardImage.message)
@@ -47,15 +41,28 @@ export class CustomerService {
                 resource_type: 'image',
             } as FileDest
 
-            const { secure_url: cardImageUrl } = await this.cloudinary.upload(serializedCardImage.file, header)
-
-            const { secure_url: photographUrl } = await this.cloudinary.upload(serializedPhotographImage.file, header)
+            const [{
+                public_id: cardPublicId,
+                secure_url: cardImageUrl,
+            }, {
+                secure_url: photographUrl,
+                public_id: photographPublicId
+            }] = await Promise.all([
+                this.cloudinary.upload(serializedCardImage.file, header),
+                this.cloudinary.upload(serializedPhotographImage.file, header)
+            ])
 
             const customer = await this.prisma.customer.create({
                 data: {
                     ...customerDto,
-                    photographUrl,
-                    cardUrl: cardImageUrl,
+                    photograph: {
+                        secure_url: photographUrl,
+                        public_id: photographPublicId,
+                    },
+                    cardImage: {
+                        secure_url: cardImageUrl,
+                        public_id: cardPublicId,
+                    },
                     status: 'active',
                     modmin: {
                         connect: { id: sub }

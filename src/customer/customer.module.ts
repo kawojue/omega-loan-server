@@ -7,7 +7,6 @@ import { PrismaService } from 'lib/prisma.service'
 import { CustomerService } from './customer.service'
 import { ResponseService } from 'lib/response.service'
 import { CustomerController } from './customer.controller'
-import { EncryptionService } from 'lib/encryption.service'
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module'
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service'
 
@@ -24,7 +23,6 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service'
     MiscService,
     ResponseService,
     CloudinaryService,
-    EncryptionService,
   ],
 })
 export class CustomerModule { }

@@ -16,13 +16,13 @@ model Customer {
     address          String?
     gender           Gender?
     membership_fee   String            @default("0")
-    cardUrl          String?
+    cardImage        File?
     nationality      String?
     cardType         cardType?
     homeAddress      String?
     officeAddress    String?
     telephone        String?
-    photographUrl    String?
+    photograph       File?
     guarantors       Guarantor[]
     entry_date       DateTime?         @default(now())
     status           UserStatus
@@ -141,4 +141,10 @@ enum UserStatus {
 enum LoanRemark {
     PAID
     PENDING
+}
+
+type File {
+    idx        String @default(uuid())
+    public_id  String
+    secure_url String
 }

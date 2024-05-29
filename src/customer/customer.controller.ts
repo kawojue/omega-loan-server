@@ -2,6 +2,7 @@ import { Response } from 'express'
 import { Role } from '@prisma/client'
 import { Roles } from 'src/role.decorator'
 import { AuthGuard } from '@nestjs/passport'
+import { StatusCodes } from 'enums/statusCodes'
 import {
   Body, Controller, Get, Param, Post, Query, Req,
   Res, UploadedFiles, UseGuards, UseInterceptors,
@@ -9,6 +10,7 @@ import {
 import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { CustomerService } from './customer.service'
 import { CreateCustomerDTO } from './dto/customer.dto'
+import { ResponseService } from 'lib/response.service'
 import { FileFieldsInterceptor } from '@nestjs/platform-express'
 import { InfiniteScrollDTO, SearchDTO } from './dto/infinite-scroll.dto'
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger'
@@ -18,9 +20,12 @@ import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagg
 @Controller('customer')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class CustomerController {
-  constructor(private readonly customerService: CustomerService) { }
+  constructor(
+    private readonly response: ResponseService,
+    private readonly customerService: CustomerService
+  ) { }
 
-  @ApiConsumes('image/png', 'image/jpeg')
+  @ApiConsumes('multipart/form-data', 'image/png', 'image/jpeg')
   @ApiOperation({
     summary: 'cardImage, photograph'
   })
@@ -42,6 +47,10 @@ export class CustomerController {
     },
     @Body() customerDto: CreateCustomerDTO,
   ) {
+    if (!files.cardImage?.length || !files.photograph?.length) {
+      return this.response.sendError(res, StatusCodes.BadRequest, "Photograph & Means of ID are required")
+    }
+
     await this.customerService.createCustomer(res, req.user, customerDto, files.cardImage[0], files.photograph[0])
   }
 
