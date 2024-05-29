@@ -6,7 +6,7 @@ import { AuthGuard } from '@nestjs/passport'
 import { AuthService } from './auth.service'
 import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common'
 
 ApiTags("Auth")
 @Controller('auth')
@@ -18,6 +18,7 @@ export class AuthController {
     await this.authService.login(res, body)
   }
 
+  @Get('/me')
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(Role.Admin, Role.Moderator)

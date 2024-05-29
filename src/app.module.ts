@@ -23,8 +23,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module'
     LoanModule,
     ModminModule,
     CustomerModule,
-    CloudinaryModule,
     GuarantorModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [

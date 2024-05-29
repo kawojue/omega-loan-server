@@ -1,11 +1,11 @@
 import { Response } from 'express'
+import { JwtService } from '@nestjs/jwt'
 import { Injectable } from '@nestjs/common'
 import { MiscService } from 'lib/misc.service'
 import { StatusCodes } from 'enums/statusCodes'
 import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
 import { EncryptionService } from 'lib/encryption.service'
-import { JwtService } from '@nestjs/jwt'
 
 @Injectable()
 export class AuthService {
