@@ -26,6 +26,19 @@ export class CustomerService {
         photograph: Express.Multer.File,
     ) {
         try {
+            const customer = await this.prisma.customer.findFirst({
+                where: {
+                    OR: [
+                        { email: { equals: customerDto.email, mode: 'insensitive' } },
+                        { telephone: { equals: customerDto.telephone, mode: 'insensitive' } },
+                    ]
+                }
+            })
+
+            if (customer) {
+                return this.response.sendError(res, StatusCodes.Conflict, "Existing customer")
+            }
+
             const serializedCardImage = validateFile(cardImage, 3 << 20, 'jpg', 'png')
             if (serializedCardImage?.status) {
                 return this.response.sendError(res, serializedCardImage.status, serializedCardImage.message)
@@ -52,7 +65,7 @@ export class CustomerService {
                 this.cloudinary.upload(serializedPhotographImage.file, header)
             ])
 
-            const customer = await this.prisma.customer.create({
+            const newCustomer = await this.prisma.customer.create({
                 data: {
                     ...customerDto,
                     photograph: {
@@ -70,7 +83,7 @@ export class CustomerService {
                 }
             })
 
-            this.response.sendSuccess(res, StatusCodes.Created, { data: customer })
+            this.response.sendSuccess(res, StatusCodes.Created, { data: newCustomer })
         } catch (err) {
             this.misc.handleServerError(res, err)
         }
