@@ -145,14 +145,14 @@ export class GuarantorService {
                 where: { id: guarantorId },
                 data: {
                     ...guarantorDto,
-                    photograph: photographUrl ? {
+                    photograph: {
                         secure_url: photographUrl,
                         public_id: photographPublicId,
-                    } : guarantor.photograph,
-                    cardImage: cardImageUrl ? {
+                    },
+                    cardImage: {
                         secure_url: cardImageUrl,
                         public_id: cardPublicId,
-                    } : guarantor.cardImage,
+                    }
                 },
             })
 

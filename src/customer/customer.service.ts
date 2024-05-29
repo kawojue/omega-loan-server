@@ -6,8 +6,8 @@ import { StatusCodes } from 'enums/statusCodes'
 import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service'
-import { CreateCustomerDTO, UpdateCustomerDTO } from './dto/customer.dto'
 import { InfiniteScrollDTO, SearchDTO } from './dto/infinite-scroll.dto'
+import { CreateCustomerDTO, UpdateCustomerDTO } from './dto/customer.dto'
 
 @Injectable()
 export class CustomerService {
@@ -147,14 +147,14 @@ export class CustomerService {
                 where: { id: customerId },
                 data: {
                     ...customerDto,
-                    photograph: photographUrl ? {
+                    photograph: {
                         secure_url: photographUrl,
                         public_id: photographPublicId,
-                    } : customer.photograph,
-                    cardImage: cardImageUrl ? {
+                    },
+                    cardImage: {
                         secure_url: cardImageUrl,
                         public_id: cardPublicId,
-                    } : customer.cardImage,
+                    }
                 },
             })
 
