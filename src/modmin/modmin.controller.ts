@@ -5,12 +5,11 @@ import { AuthGuard } from '@nestjs/passport'
 import { ModminService } from './modmin.service'
 import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
-import { CreateModeratorDTO } from './dto/moderator.dto'
+import { CreateModeratorDTO, UpdateModeratorDTO } from './dto/moderator.dto'
+import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
 import {
   Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Req, Res, UseGuards
 } from '@nestjs/common'
-import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
-import { UpdateCustomerDTO } from 'src/customer/dto/customer.dto'
 
 @ApiTags("Modmin")
 @Controller('modmin')
@@ -52,7 +51,7 @@ export class ModminController {
   @Roles(Role.Admin)
   async updateModerator(
     @Res() res: Response,
-    @Body() body: UpdateCustomerDTO,
+    @Body() body: UpdateModeratorDTO,
     @Param('moderatorId') moderatorId: string
   ) {
     await this.modminService.updateModerator(res, moderatorId, body)

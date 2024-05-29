@@ -64,4 +64,25 @@ export class AuthService {
             this.misc.handleServerError(res, err)
         }
     }
+
+    async me(res: Response, { sub }: ExpressUser) {
+        const profile = await this.prisma.modmin.findUnique({
+            where: { id: sub },
+            select: {
+                role: true,
+                email: true,
+                gender: true,
+                status: true,
+                surname: true,
+                createdAt: true,
+                otherNames: true,
+            }
+        })
+
+        if (!profile) {
+            return this.response.sendError(res, StatusCodes.NotFound, "Profile not found")
+        }
+
+        this.response.sendSuccess(res, StatusCodes.OK, { data: profile })
+    }
 }

@@ -1,8 +1,12 @@
 import { Response } from 'express'
-import { ApiTags } from '@nestjs/swagger'
+import { Role } from '@prisma/client'
 import { LoginDTO } from './dto/auth.dto'
+import { Roles } from 'src/role.decorator'
+import { AuthGuard } from '@nestjs/passport'
 import { AuthService } from './auth.service'
-import { Body, Controller, Post, Res } from '@nestjs/common'
+import { RolesGuard } from 'src/jwt/jwt-auth.guard'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common'
 
 ApiTags("Auth")
 @Controller('auth')
@@ -12,5 +16,12 @@ export class AuthController {
   @Post('/login')
   async login(@Res() res: Response, @Body() body: LoginDTO) {
     await this.authService.login(res, body)
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.Admin, Role.Moderator)
+  async me(@Res() res: Response, @Req() req: IRequest) {
+    await this.authService.me(res, req.user)
   }
 }
