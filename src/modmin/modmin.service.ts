@@ -185,7 +185,7 @@ export class ModminService {
     ) {
         const moderators = await this.prisma.modmin.findMany({
             where: {
-                role: 'Admin',
+                role: 'Moderator',
                 OR: [
                     { email: { contains: search, mode: 'insensitive' } },
                     { surname: { contains: search, mode: 'insensitive' } },
