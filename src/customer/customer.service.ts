@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common'
 import { MiscService } from 'lib/misc.service'
 import { StatusCodes } from 'enums/statusCodes'
 import { PrismaService } from 'lib/prisma.service'
-import { CreateCustomerDTO } from './dto/customer.dto'
+import { CreateCustomerDTO, UpdateCustomerDTO } from './dto/customer.dto'
 import { ResponseService } from 'lib/response.service'
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service'
 import { InfiniteScrollDTO, SearchDTO } from './dto/infinite-scroll.dto'
@@ -80,7 +80,7 @@ export class CustomerService {
         res: Response,
         { sub, role }: ExpressUser,
         customerId: string,
-        customerDto: Partial<CreateCustomerDTO>,
+        customerDto: UpdateCustomerDTO,
         cardImage?: Express.Multer.File,
         photograph?: Express.Multer.File,
     ) {
@@ -96,14 +96,21 @@ export class CustomerService {
                 return this.response.sendError(res, StatusCodes.NotFound, 'Customer not found')
             }
 
-            let cardImageUrl, cardPublicId, photographUrl, photographPublicId
+            let cardImageUrl = customer.cardImage?.secure_url
+            let cardPublicId = customer.cardImage?.public_id
+            let photographUrl = customer.photograph?.secure_url
+            let photographPublicId = customer.photograph?.public_id
 
             if (cardImage) {
                 const serializedCardImage = validateFile(cardImage, 3 << 20, 'jpg', 'png')
                 if (serializedCardImage?.status) {
                     return this.response.sendError(res, serializedCardImage.status, serializedCardImage.message)
                 }
-                await this.cloudinary.delete(customer.cardImage.public_id)
+
+                if (cardPublicId) {
+                    await this.cloudinary.delete(cardPublicId)
+                }
+
                 const uploadedCardImage = await this.cloudinary.upload(serializedCardImage.file, { folder: 'OmegaLoan', resource_type: 'image' })
                 cardImageUrl = uploadedCardImage.secure_url
                 cardPublicId = uploadedCardImage.public_id
@@ -114,7 +121,10 @@ export class CustomerService {
                 if (serializedPhotographImage?.status) {
                     return this.response.sendError(res, serializedPhotographImage.status, serializedPhotographImage.message)
                 }
-                await this.cloudinary.delete(customer.photograph.public_id)
+
+                if (photographPublicId) {
+                    await this.cloudinary.delete(photographPublicId)
+                }
                 const uploadedPhotograph = await this.cloudinary.upload(serializedPhotographImage.file, { folder: 'OmegaLoan', resource_type: 'image' })
                 photographUrl = uploadedPhotograph.secure_url
                 photographPublicId = uploadedPhotograph.public_id
@@ -272,149 +282,6 @@ export class CustomerService {
         }
     }
 
-    async fetchAllGuarantors(
-        res: Response,
-        {
-            limit = 20, page = 1, search = ''
-        }: InfiniteScrollDTO,
-        { sub, role }: ExpressUser,
-    ) {
-        try {
-            page = Number(page)
-            limit = Number(limit)
-            search = search?.trim() ?? ''
-            const offset = (page - 1) * limit
-
-            const OR: ({
-                name: {
-                    contains: string
-                    mode: "insensitive"
-                }
-            } | {
-                email: {
-                    contains: string
-                    mode: "insensitive"
-                }
-            })[] = [
-                    { name: { contains: search, mode: 'insensitive' } },
-                    { email: { contains: search, mode: 'insensitive' } },
-                ]
-
-            const guarantors = await this.prisma.guarantor.findMany({
-                where: role === "Admin" ? {
-                    OR
-                } : {
-                    guranted_for: { modminId: sub },
-                    OR
-                },
-                skip: offset,
-                take: limit,
-                orderBy: { updatedAt: 'desc' },
-                select: {
-                    name: true,
-                    email: true,
-                    address: true,
-                    telephone1: true,
-                    telephone2: true,
-                    homeAddress: true,
-                    addressOfBusiness: true,
-                }
-            })
-
-            const length = await this.prisma.guarantor.count({
-                where: role === "Admin" ? {
-                    OR
-                } : {
-                    guranted_for: { modminId: sub },
-                    OR
-                }
-            })
-
-            const totalPages = Math.ceil(length / limit)
-
-            this.response.sendSuccess(res, StatusCodes.OK, {
-                data: guarantors,
-                metadata: { length, totalPages }
-            })
-        } catch (err) {
-            this.misc.handleServerError(res, err)
-        }
-    }
-
-    async fetchCustomerGuarantors(
-        res: Response,
-        {
-            limit = 20, page = 1, search = ''
-        }: InfiniteScrollDTO,
-        { sub, role }: ExpressUser,
-        customerId: string,
-    ) {
-        try {
-            page = Number(page)
-            limit = Number(limit)
-            search = search?.trim() ?? ''
-            const offset = (page - 1) * limit
-
-            const OR: ({
-                name: {
-                    contains: string
-                    mode: "insensitive"
-                }
-            } | {
-                email: {
-                    contains: string
-                    mode: "insensitive"
-                }
-            })[] = [
-                    { name: { contains: search, mode: 'insensitive' } },
-                    { email: { contains: search, mode: 'insensitive' } },
-                ]
-
-            const guarantors = await this.prisma.guarantor.findMany({
-                where: role === "Admin" ? {
-                    OR,
-                    customerId,
-                } : {
-                    guranted_for: { modminId: sub },
-                    OR,
-                    customerId,
-                },
-                skip: offset,
-                take: limit,
-                orderBy: { updatedAt: 'desc' },
-                select: {
-                    name: true,
-                    email: true,
-                    address: true,
-                    telephone1: true,
-                    telephone2: true,
-                    homeAddress: true,
-                    addressOfBusiness: true,
-                }
-            })
-
-            const length = await this.prisma.guarantor.count({
-                where: role === "Admin" ? {
-                    OR,
-                    customerId,
-                } : {
-                    guranted_for: { modminId: sub },
-                    OR,
-                    customerId,
-                },
-            })
-
-            const totalPages = Math.ceil(length / limit)
-
-            this.response.sendSuccess(res, StatusCodes.OK, {
-                data: guarantors,
-                metadata: { length, totalPages }
-            })
-        } catch (err) {
-            this.misc.handleServerError(res, err)
-        }
-    }
-
     async customersDropdown(
         res: Response,
         { search }: SearchDTO,
@@ -444,33 +311,5 @@ export class CustomerService {
         })
 
         this.response.sendSuccess(res, StatusCodes.OK, { data: customers })
-    }
-
-    async guarantorsDropdown(
-        res: Response,
-        { search }: SearchDTO,
-        { role, sub }: ExpressUser
-    ) {
-        const guarantors = await this.prisma.guarantor.findMany({
-            where: role === "Admin" ? {
-                OR: [
-                    { email: { contains: search, mode: 'insensitive' } },
-                    { name: { contains: search, mode: 'insensitive' } },
-                ]
-            } : {
-                OR: [
-                    { email: { contains: search, mode: 'insensitive' } },
-                    { name: { contains: search, mode: 'insensitive' } },
-                ],
-                guranted_for: { modminId: sub },
-            },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-            }
-        })
-
-        this.response.sendSuccess(res, StatusCodes.OK, { data: guarantors })
     }
 }

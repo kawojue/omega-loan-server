@@ -40,7 +40,8 @@ model Guarantor {
     address           String
     gender            Gender?
     cardType          String?
-    cardUrl           String?
+    cardImage         File?
+    photograph        File?
     nationality       String?
     placeOfWork       String?
     addressOfBusiness String?
@@ -48,9 +49,8 @@ model Guarantor {
     telephone1        String?
     telephone2        String?
     positionHeld      String?
-    photographUrl     String?
+    customer          Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
     customerId        String   @db.ObjectId
-    guranted_for      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
     createdAt         DateTime @default(now())
     updatedAt         DateTime @updatedAt
 }

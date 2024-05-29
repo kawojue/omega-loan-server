@@ -121,38 +121,4 @@ export class CustomerController {
   ) {
     await this.customerService.fetchCustomer(res, req.user, customerId)
   }
-
-  @Get('/guarantors/all')
-  @Roles(Role.Admin, Role.Moderator)
-  async fetchAllGuarantors(
-    @Res() res: Response,
-    @Req() req: IRequest,
-    @Query() query: InfiniteScrollDTO
-  ) {
-    await this.customerService.fetchAllGuarantors(res, query, req.user)
-  }
-
-  @Get('/guarantors/dropdown')
-  @Roles(Role.Admin, Role.Moderator)
-  async guarantorsDropdown(
-    @Res() res: Response,
-    @Req() req: IRequest,
-    @Query() query: SearchDTO,
-  ) {
-    await this.customerService.guarantorsDropdown(res, query, req.user)
-  }
-
-  @ApiOperation({
-    summary: "Fetches the customer guarantors"
-  })
-  @Get('/guarantors/:customerId')
-  @Roles(Role.Admin, Role.Moderator)
-  async fetchCustomerGuarantors(
-    @Res() res: Response,
-    @Req() req: IRequest,
-    @Query() query: InfiniteScrollDTO,
-    @Param('customerId') customerId: string,
-  ) {
-    await this.customerService.fetchCustomerGuarantors(res, query, req.user, customerId)
-  }
 }

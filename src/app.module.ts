@@ -11,6 +11,7 @@ import { ResponseService } from 'lib/response.service'
 import { EncryptionService } from 'lib/encryption.service'
 import { CustomerModule } from './customer/customer.module'
 import cloudinaryConfig from './cloudinary/cloudinary.config'
+import { GuarantorModule } from './guarantor/guarantor.module'
 import { CloudinaryModule } from './cloudinary/cloudinary.module'
 
 @Module({
@@ -23,6 +24,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module'
     ModminModule,
     CustomerModule,
     CloudinaryModule,
+    GuarantorModule,
   ],
   controllers: [AppController],
   providers: [
