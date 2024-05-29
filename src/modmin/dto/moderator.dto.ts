@@ -1,6 +1,6 @@
 import { Gender } from '@prisma/client'
-import { ApiProperty } from '@nestjs/swagger'
 import { Transform } from 'class-transformer'
+import { ApiProperty, PartialType } from '@nestjs/swagger'
 import { titleText, toLowerCase } from 'helpers/transformer'
 import { IsEmail, IsNotEmpty, IsString, MinLength, IsEnum } from 'class-validator'
 
@@ -49,3 +49,5 @@ export class CreateModeratorDTO {
     @IsEnum(Gender)
     gender: Gender
 }
+
+export class UpdateModeratorDTO extends PartialType(CreateModeratorDTO) { }

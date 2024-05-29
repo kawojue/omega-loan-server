@@ -5,18 +5,19 @@ import { AuthGuard } from '@nestjs/passport'
 import { ModminService } from './modmin.service'
 import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
-import { CreateModeratorDTO } from 'src/auth/dto/moderator.dto'
+import { CreateModeratorDTO } from './dto/moderator.dto'
 import {
-  Body, Controller, Get, Param, Patch, Post, Query, Req, Res, UseGuards
+  Body, Controller, Get, Param, Patch, Post, Put, Query, Req, Res, UseGuards
 } from '@nestjs/common'
 import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
+import { UpdateCustomerDTO } from 'src/customer/dto/customer.dto'
 
 @ApiTags("Modmin")
 @Controller('modmin')
 export class ModminController {
   constructor(private readonly modminService: ModminService) { }
 
-  @Post('/signup')
+  // @Post('/signup')
   async signup(
     @Res() res: Response,
     @Body() body: CreateModeratorDTO
@@ -47,9 +48,20 @@ export class ModminController {
   }
 
   @ApiBearerAuth()
+  @Put('/moderators/:moderatorId')
+  @Roles(Role.Admin)
+  async updateModerator(
+    @Res() res: Response,
+    @Body() body: UpdateCustomerDTO,
+    @Param('moderatorId') moderatorId: string
+  ) {
+    await this.modminService.updateModerator(res, moderatorId, body)
+  }
+
+  @ApiBearerAuth()
   @Get('/moderators/dropdown')
   @Roles(Role.Admin)
-  async guarantorsDropdown(
+  async moderatorsDropdown(
     @Res() res: Response,
     @Query() query: SearchDTO,
   ) {

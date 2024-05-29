@@ -4,8 +4,8 @@ import { MiscService } from 'lib/misc.service'
 import { StatusCodes } from 'enums/statusCodes'
 import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
+import { CreateModeratorDTO, UpdateModeratorDTO } from './dto/moderator.dto'
 import { EncryptionService } from 'lib/encryption.service'
-import { CreateModeratorDTO } from 'src/auth/dto/moderator.dto'
 import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
 
 @Injectable()
@@ -82,6 +82,49 @@ export class ModminService {
             this.response.sendSuccess(res, StatusCodes.OK, {
                 data: moderator,
                 message: "Moderator created successfully"
+            })
+        } catch (err) {
+            this.misc.handleServerError(res, err)
+        }
+    }
+
+    async updateModerator(
+        res: Response,
+        moderatorId: string,
+        updateModeratorDto: UpdateModeratorDTO
+    ) {
+        try {
+            const existingModerator = await this.prisma.modmin.findUnique({
+                where: { id: moderatorId },
+            })
+
+            if (!existingModerator) {
+                return this.response.sendError(res, StatusCodes.NotFound, 'Moderator not found')
+            }
+
+            if (updateModeratorDto.email && updateModeratorDto.email !== existingModerator.email) {
+                const isEmailTaken = await this.prisma.modmin.findUnique({
+                    where: { email: updateModeratorDto.email },
+                })
+                if (isEmailTaken) {
+                    return this.response.sendError(res, StatusCodes.Conflict, 'Email is already in use')
+                }
+            }
+
+            if (updateModeratorDto.password) {
+                updateModeratorDto.password = await this.encryption.hashAsync(updateModeratorDto.password)
+            }
+
+            const updatedModerator = await this.prisma.modmin.update({
+                where: { id: moderatorId },
+                data: {
+                    ...updateModeratorDto,
+                },
+            })
+
+            this.response.sendSuccess(res, StatusCodes.OK, {
+                data: updatedModerator,
+                message: 'Moderator updated successfully',
             })
         } catch (err) {
             this.misc.handleServerError(res, err)
