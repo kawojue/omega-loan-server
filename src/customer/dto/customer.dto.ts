@@ -6,9 +6,9 @@ import {
     MinLength,
     IsEnum,
 } from 'class-validator'
-import { ApiProperty } from '@nestjs/swagger'
 import { Transform } from 'class-transformer'
 import { Gender, cardType } from '.prisma/client'
+import { ApiProperty, PartialType } from '@nestjs/swagger'
 import { titleText, toLowerCase } from 'helpers/transformer'
 
 export class CreateCustomerDTO {
@@ -74,3 +74,5 @@ export class CreateCustomerDTO {
     @IsOptional()
     telephone: string
 }
+
+export class UpdateCustomerDTO extends PartialType(CreateCustomerDTO) { }

@@ -76,6 +76,102 @@ export class CustomerService {
         }
     }
 
+    async updateCustomer(
+        res: Response,
+        { sub, role }: ExpressUser,
+        customerId: string,
+        customerDto: Partial<CreateCustomerDTO>,
+        cardImage?: Express.Multer.File,
+        photograph?: Express.Multer.File,
+    ) {
+        try {
+            const customer = await this.prisma.customer.findUnique({
+                where: role === "Admin" ? { id: customerId } : {
+                    id: customerId,
+                    modminId: sub,
+                },
+            })
+
+            if (!customer) {
+                return this.response.sendError(res, StatusCodes.NotFound, 'Customer not found')
+            }
+
+            let cardImageUrl, cardPublicId, photographUrl, photographPublicId
+
+            if (cardImage) {
+                const serializedCardImage = validateFile(cardImage, 3 << 20, 'jpg', 'png')
+                if (serializedCardImage?.status) {
+                    return this.response.sendError(res, serializedCardImage.status, serializedCardImage.message)
+                }
+                await this.cloudinary.delete(customer.cardImage.public_id)
+                const uploadedCardImage = await this.cloudinary.upload(serializedCardImage.file, { folder: 'OmegaLoan', resource_type: 'image' })
+                cardImageUrl = uploadedCardImage.secure_url
+                cardPublicId = uploadedCardImage.public_id
+            }
+
+            if (photograph) {
+                const serializedPhotographImage = validateFile(photograph, 3 << 20, 'jpg', 'png')
+                if (serializedPhotographImage?.status) {
+                    return this.response.sendError(res, serializedPhotographImage.status, serializedPhotographImage.message)
+                }
+                await this.cloudinary.delete(customer.photograph.public_id)
+                const uploadedPhotograph = await this.cloudinary.upload(serializedPhotographImage.file, { folder: 'OmegaLoan', resource_type: 'image' })
+                photographUrl = uploadedPhotograph.secure_url
+                photographPublicId = uploadedPhotograph.public_id
+            }
+
+            const updatedCustomer = await this.prisma.customer.update({
+                where: { id: customerId },
+                data: {
+                    ...customerDto,
+                    photograph: photographUrl ? {
+                        secure_url: photographUrl,
+                        public_id: photographPublicId,
+                    } : customer.photograph,
+                    cardImage: cardImageUrl ? {
+                        secure_url: cardImageUrl,
+                        public_id: cardPublicId,
+                    } : customer.cardImage,
+                },
+            })
+
+            this.response.sendSuccess(res, StatusCodes.OK, { data: updatedCustomer })
+        } catch (err) {
+            this.misc.handleServerError(res, err)
+        }
+    }
+
+    async deleteCustomer(
+        res: Response,
+        customerId: string
+    ) {
+        try {
+            const customer = await this.prisma.customer.findUnique({
+                where: { id: customerId },
+            })
+
+            if (!customer) {
+                return this.response.sendError(res, StatusCodes.NotFound, 'Customer not found')
+            }
+
+            if (customer.cardImage?.public_id) {
+                await this.cloudinary.delete(customer.cardImage.public_id)
+            }
+
+            if (customer.photograph?.public_id) {
+                await this.cloudinary.delete(customer.photograph.public_id)
+            }
+
+            await this.prisma.customer.delete({
+                where: { id: customerId },
+            })
+
+            this.response.sendSuccess(res, StatusCodes.NoContent, null)
+        } catch (err) {
+            this.misc.handleServerError(res, err)
+        }
+    }
+
     async fetchCustomer(
         res: Response,
         { sub, role }: ExpressUser,
