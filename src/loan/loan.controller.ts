@@ -1,13 +1,12 @@
 import { Response } from 'express'
 import { Role } from '@prisma/client'
-import {
-  Body, Controller, Delete, Get, Param,
-  Patch,
-  Post, Put, Query, Req, Res, UseGuards,
-} from '@nestjs/common'
 import { Roles } from 'src/role.decorator'
 import { LoanService } from './loan.service'
 import { AuthGuard } from '@nestjs/passport'
+import {
+  Body, Controller, Delete, Param, Patch,
+  Post, Put, Query, Req, Res, Get, UseGuards,
+} from '@nestjs/common'
 import {
   InfiniteScrollDTO, SearchDTO
 } from 'src/customer/dto/infinite-scroll.dto'

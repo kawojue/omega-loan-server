@@ -4,9 +4,9 @@ import { Injectable } from '@nestjs/common'
 import { MiscService } from 'lib/misc.service'
 import { StatusCodes } from 'enums/statusCodes'
 import { PrismaService } from 'lib/prisma.service'
-import { CreateCustomerDTO, UpdateCustomerDTO } from './dto/customer.dto'
 import { ResponseService } from 'lib/response.service'
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service'
+import { CreateCustomerDTO, UpdateCustomerDTO } from './dto/customer.dto'
 import { InfiniteScrollDTO, SearchDTO } from './dto/infinite-scroll.dto'
 
 @Injectable()
