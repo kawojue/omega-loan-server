@@ -47,8 +47,8 @@ export class ModminController {
   }
 
   @ApiBearerAuth()
-  @Put('/moderators/:moderatorId')
   @Roles(Role.Admin)
+  @Put('/moderators/:moderatorId')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   async updateModerator(
     @Res() res: Response,
@@ -56,6 +56,17 @@ export class ModminController {
     @Param('moderatorId') moderatorId: string
   ) {
     await this.modminService.updateModerator(res, moderatorId, body)
+  }
+
+  @ApiBearerAuth()
+  @Roles(Role.Admin)
+  @Get('/moderators/:moderatorId')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  async getModerator(
+    @Res() res: Response,
+    @Param('moderatorId') moderatorId: string
+  ) {
+    await this.modminService.getModerator(res, moderatorId)
   }
 
   @ApiBearerAuth()

@@ -88,6 +88,31 @@ export class ModminService {
         }
     }
 
+    async getModerator(res: Response, moderatorId: string) {
+        const moderator = await this.prisma.modmin.findUnique({
+            where: {
+                id: moderatorId,
+                role: 'Moderator',
+            },
+            select: {
+                id: true,
+                role: true,
+                email: true,
+                status: true,
+                gender: true,
+                surname: true,
+                createdAt: true,
+                otherNames: true,
+            }
+        })
+
+        if (!moderator) {
+            return this.response.sendError(res, StatusCodes.NotFound, "Moderator not found")
+        }
+
+        this.response.sendSuccess(res, StatusCodes.OK, { data: moderator })
+    }
+
     async updateModerator(
         res: Response,
         moderatorId: string,
