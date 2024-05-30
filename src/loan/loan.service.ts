@@ -313,12 +313,21 @@ export class LoanService {
                 },
                 select: {
                     id: true,
+                    remarks: true,
                     loanType: true,
                     createdAt: true,
                     loanTenure: true,
                     disbursedDate: true,
                     managementFee: true,
                     applicationFee: true,
+                    modmin: {
+                        select: {
+                            id: true,
+                            email: true,
+                            surname: true,
+                            otherNames: true,
+                        }
+                    },
                     customer: {
                         select: {
                             id: true,
