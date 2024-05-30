@@ -321,14 +321,6 @@ export class LoanService {
                     disbursedDate: true,
                     managementFee: true,
                     applicationFee: true,
-                    modmin: {
-                        select: {
-                            id: true,
-                            email: true,
-                            surname: true,
-                            otherNames: true,
-                        }
-                    },
                     customer: {
                         select: {
                             id: true,
@@ -336,6 +328,14 @@ export class LoanService {
                             surname: true,
                             telephone: true,
                             otherNames: true,
+                            modmin: {
+                                select: {
+                                    id: true,
+                                    email: true,
+                                    surname: true,
+                                    otherNames: true,
+                                }
+                            },
                         }
                     },
                 },
