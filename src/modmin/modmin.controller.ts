@@ -82,7 +82,7 @@ export class ModminController {
 
   @ApiBearerAuth()
   @Roles(Role.Admin)
-  @Patch('/toggle-status')
+  @Patch('/toggle-status/:moderatorId')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   async toggleStatus(
     @Res() res: Response,
