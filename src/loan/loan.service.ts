@@ -48,10 +48,7 @@ export class LoanService {
         this.response.sendSuccess(res, StatusCodes.OK, { data: newCategory })
     }
 
-    async removeLoanCategory(
-        res: Response,
-        categoryId: string,
-    ) {
+    async removeLoanCategory(res: Response, categoryId: string) {
         const category = await this.prisma.loanCategory.findUnique({
             where: { id: categoryId }
         })
@@ -65,6 +62,18 @@ export class LoanService {
         })
 
         this.response.sendSuccess(res, StatusCodes.OK, { data: removedCategory })
+    }
+
+    async getLoanCategory(res: Response, categoryId: string) {
+        const category = await this.prisma.loanCategory.findUnique({
+            where: { id: categoryId }
+        })
+
+        if (!category) {
+            return this.response.sendError(res, StatusCodes.NotFound, "Loan category not found")
+        }
+
+        this.response.sendSuccess(res, StatusCodes.OK, { data: category })
     }
 
     async listLoanCategory(

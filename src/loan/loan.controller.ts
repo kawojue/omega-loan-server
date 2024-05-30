@@ -40,6 +40,15 @@ export class LoanController {
     await this.loanService.listLoanCategory(res, query)
   }
 
+  @Roles(Role.Admin, Role.Moderator)
+  @Get('loan-category/:categoryId')
+  async getLoanCategory(
+    @Res() res: Response,
+    @Param('categoryId') categoryId: string
+  ) {
+    await this.loanService.getLoanCategory(res, categoryId)
+  }
+
   @Put('loan-category/:categoryId')
   @Roles(Role.Admin)
   async editLoanCategory(
