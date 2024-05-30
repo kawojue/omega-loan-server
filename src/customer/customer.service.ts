@@ -222,8 +222,13 @@ export class CustomerService {
             orderBy: { createdAt: 'desc' }
         })
 
+        const guarantors = await this.prisma.guarantor.findMany({
+            where: { customerId },
+            orderBy: { updatedAt: 'desc' }
+        })
+
         this.response.sendSuccess(res, StatusCodes.OK, {
-            data: { customer, currentLoan },
+            data: { customer, currentLoan, guarantors },
             metadata: { guarantorsCount }
         })
     }
