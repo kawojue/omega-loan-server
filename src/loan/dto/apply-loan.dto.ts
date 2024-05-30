@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger'
+import { ApiProperty, PartialType } from '@nestjs/swagger'
 import { YesNo, LoanType } from '.prisma/client'
 import {
     IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString
@@ -78,3 +78,5 @@ export class LoanApplicationDTO {
     @IsEnum(YesNo)
     outstandingLoans: YesNo
 }
+
+export class UpdateLoanApplicationDTO extends PartialType(LoanApplicationDTO) { }

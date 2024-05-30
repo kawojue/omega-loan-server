@@ -5,7 +5,7 @@ import { StatusCodes } from 'enums/statusCodes'
 import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
 import { LoanCategoryDTO } from './dto/loan-catogory.dto'
-import { LoanApplicationDTO } from './dto/apply-loan.dto'
+import { LoanApplicationDTO, UpdateLoanApplicationDTO } from './dto/apply-loan.dto'
 import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
 
 @Injectable()
@@ -172,6 +172,68 @@ export class LoanService {
             })
 
             this.response.sendSuccess(res, StatusCodes.OK, { data: application })
+        } catch (err) {
+            this.misc.handleServerError(res, err)
+        }
+    }
+
+    async editLoanApplication(
+        res: Response,
+        loanApplicationId: string,
+        dto: UpdateLoanApplicationDTO
+    ) {
+        try {
+            const loanApplication = await this.prisma.loanApplication.findUnique({
+                where: { id: loanApplicationId }
+            })
+
+            if (!loanApplication) {
+                return this.response.sendError(res, StatusCodes.NotFound, "Loan application not found")
+            }
+
+            const {
+                loanType,
+                loanAmount,
+                managementFee,
+                applicationFee,
+                equity,
+                disbursedDate,
+                loanTenure,
+                preLoanAmount,
+                preLoanTenure,
+                officeAddress,
+                salaryDate,
+                salaryAmount,
+                bankName,
+                bankAccNumber,
+                outstandingLoans,
+            } = dto
+
+            const parsedDisbursedDate = disbursedDate ? new Date(disbursedDate) : null
+            const parsedSalaryDate = salaryDate ? new Date(salaryDate) : null
+
+            const updatedApplication = await this.prisma.loanApplication.update({
+                where: { id: loanApplicationId },
+                data: {
+                    loanType,
+                    loanAmount,
+                    managementFee,
+                    applicationFee,
+                    equity,
+                    disbursedDate: parsedDisbursedDate,
+                    loanTenure,
+                    preLoanAmount,
+                    preLoanTenure,
+                    officeAddress,
+                    salaryDate: parsedSalaryDate,
+                    salaryAmount,
+                    bankName,
+                    bankAccNumber,
+                    outstandingLoans,
+                }
+            })
+
+            this.response.sendSuccess(res, StatusCodes.OK, { data: updatedApplication })
         } catch (err) {
             this.misc.handleServerError(res, err)
         }

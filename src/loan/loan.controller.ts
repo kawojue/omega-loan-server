@@ -12,8 +12,8 @@ import {
 } from 'src/customer/dto/infinite-scroll.dto'
 import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
-import { LoanApplicationDTO } from './dto/apply-loan.dto'
 import { LoanCategoryDTO } from './dto/loan-catogory.dto'
+import { LoanApplicationDTO, UpdateLoanApplicationDTO } from './dto/apply-loan.dto'
 
 @ApiTags("Loan")
 @ApiBearerAuth()
@@ -60,6 +60,7 @@ export class LoanController {
   }
 
   @Post('/apply/:customerId')
+  @Roles(Role.Admin, Role.Moderator)
   async applyLoanApplication(
     @Req() req: IRequest,
     @Res() res: Response,
@@ -69,7 +70,18 @@ export class LoanController {
     await this.loanService.applyLoanApplication(res, customerId, req.user, body)
   }
 
+  @Roles(Role.Admin)
+  @Put('/edit/:loanApplicationId')
+  async editLoanApplication(
+    @Res() res: Response,
+    @Body() body: UpdateLoanApplicationDTO,
+    @Param('loanApplicationId') loanApplicationId: string
+  ) {
+    await this.loanService.editLoanApplication(res, loanApplicationId, body)
+  }
+
   @Patch('/toogle-status/:loanId')
+  @Roles(Role.Admin, Role.Moderator)
   async toggleLoanStatus(
     @Req() req: IRequest,
     @Res() res: Response,
@@ -79,6 +91,7 @@ export class LoanController {
   }
 
   @Get('/fetch')
+  @Roles(Role.Admin, Role.Moderator)
   async fetchLoans(
     @Req() req: IRequest,
     @Res() res: Response,
@@ -88,6 +101,7 @@ export class LoanController {
   }
 
   @Get('/dropdown')
+  @Roles(Role.Admin, Role.Moderator)
   async fetchLoansDropdown(
     @Req() req: IRequest,
     @Res() res: Response,
