@@ -124,7 +124,7 @@ export class LoanService {
             })
 
             if (isPendingLoanAvailable) {
-                return this.response.sendError(res, StatusCodes.Unauthorized, "Can't apply for a new loan. There is available pending loan")
+                return this.response.sendError(res, StatusCodes.Unauthorized, "Can't apply for a new loan. There is available pending loan for the customer")
             }
 
             const {
@@ -144,7 +144,6 @@ export class LoanService {
                 bankAccNumber,
                 outstandingLoans,
             } = dto
-
 
             const parsedDisbursedDate = new Date(disbursedDate)
             const parsedSalaryDate = salaryDate ? new Date(salaryDate) : null
@@ -209,8 +208,8 @@ export class LoanService {
                 outstandingLoans,
             } = dto
 
-            const parsedDisbursedDate = disbursedDate ? new Date(disbursedDate) : null
-            const parsedSalaryDate = salaryDate ? new Date(salaryDate) : null
+            const parsedSalaryDate = salaryDate ? new Date(salaryDate) : loanApplication.salaryDate
+            const parsedDisbursedDate = disbursedDate ? new Date(disbursedDate) : loanApplication.disbursedDate
 
             const updatedApplication = await this.prisma.loanApplication.update({
                 where: { id: loanApplicationId },
