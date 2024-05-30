@@ -317,6 +317,7 @@ export class LoanService {
                     loanType: true,
                     createdAt: true,
                     loanTenure: true,
+                    salaryDate: true,
                     disbursedDate: true,
                     managementFee: true,
                     applicationFee: true,
@@ -343,6 +344,14 @@ export class LoanService {
                 orderBy: { updatedAt: 'desc' }
             })
 
+            const formattedLoans = loans.map((loan) => {
+                return {
+                    ...loan,
+                    salaryDate: loan.salaryDate ? new Date(loan.salaryDate).toDateString() : null,
+                    disbursedDate: loan.disbursedDate ? new Date(loan.disbursedDate).toDateString() : null,
+                }
+            })
+
             const length = await this.prisma.loanApplication.count({
                 where: role === "Admin" ? { OR } : {
                     modminId: sub,
@@ -353,7 +362,7 @@ export class LoanService {
             const totalPages = Math.ceil(length / limit)
 
             this.response.sendSuccess(res, StatusCodes.OK, {
-                data: loans,
+                data: formattedLoans,
                 metadata: { length, totalPages }
             })
         } catch (err) {
