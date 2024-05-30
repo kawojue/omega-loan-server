@@ -344,14 +344,6 @@ export class LoanService {
                 orderBy: { updatedAt: 'desc' }
             })
 
-            const formattedLoans = loans.map((loan) => {
-                return {
-                    ...loan,
-                    salaryDate: loan.salaryDate ? new Date(loan.salaryDate).toDateString() : null,
-                    disbursedDate: loan.disbursedDate ? new Date(loan.disbursedDate).toDateString() : null,
-                }
-            })
-
             const length = await this.prisma.loanApplication.count({
                 where: role === "Admin" ? { OR } : {
                     modminId: sub,
@@ -362,7 +354,7 @@ export class LoanService {
             const totalPages = Math.ceil(length / limit)
 
             this.response.sendSuccess(res, StatusCodes.OK, {
-                data: formattedLoans,
+                data: loans,
                 metadata: { length, totalPages }
             })
         } catch (err) {
@@ -431,5 +423,20 @@ export class LoanService {
         })
 
         this.response.sendSuccess(res, StatusCodes.OK, { data: loans })
+    }
+
+    async getLoanApplication(
+        res: Response,
+        { sub, role }: ExpressUser,
+        loanApplicationId: string
+    ) {
+        const loan = await this.prisma.loanApplication.findUnique({
+            where: role === "Admin" ? {
+                id: loanApplicationId
+            } : {
+                id: loanApplicationId,
+                customer: { modminId: sub }
+            }
+        })
     }
 }
