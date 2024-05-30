@@ -116,6 +116,17 @@ export class LoanService {
                 return this.response.sendError(res, StatusCodes.NotFound, "Customer not found")
             }
 
+            const isPendingLoanAvailable = await this.prisma.loanApplication.findFirst({
+                where: {
+                    remarks: 'PENDING',
+                    customerId: customer.id
+                }
+            })
+
+            if (isPendingLoanAvailable) {
+                return this.response.sendError(res, StatusCodes.Unauthorized, "Can't apply for a new loan. There is available pending loan")
+            }
+
             const {
                 loanType,
                 loanAmount,
