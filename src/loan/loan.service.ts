@@ -325,16 +325,7 @@ export class LoanService {
                     modminId: sub,
                     OR,
                 },
-                select: {
-                    id: true,
-                    remarks: true,
-                    loanType: true,
-                    createdAt: true,
-                    loanTenure: true,
-                    salaryDate: true,
-                    disbursedDate: true,
-                    managementFee: true,
-                    applicationFee: true,
+                include: {
                     customer: {
                         select: {
                             id: true,
