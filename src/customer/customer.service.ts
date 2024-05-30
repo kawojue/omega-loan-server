@@ -44,7 +44,7 @@ export class CustomerService {
                 return this.response.sendError(res, serializedCardImage.status, serializedCardImage.message)
             }
 
-            const serializedPhotographImage = validateFile(photograph, 3 << 20, 'jpg', 'png')
+            const serializedPhotographImage = validateFile(photograph, 3 << 20, 'jpg', 'png', 'jpeg')
             if (serializedCardImage?.status) {
                 return this.response.sendError(res, serializedPhotographImage.status, serializedPhotographImage.message)
             }
