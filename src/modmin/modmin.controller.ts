@@ -28,7 +28,7 @@ export class ModminController {
   @Get('/moderators')
   @Roles(Role.Admin, Role.Moderator)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  async fetchCustomers(
+  async fetchModerators(
     @Res() res: Response,
     @Query() query: InfiniteScrollDTO
   ) {
@@ -93,7 +93,7 @@ export class ModminController {
   }
 
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin, Role.Moderator)
   @Get('/analytics')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   async analytics(
