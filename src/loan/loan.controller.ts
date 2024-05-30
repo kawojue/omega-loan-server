@@ -70,6 +70,16 @@ export class LoanController {
     await this.loanService.applyLoanApplication(res, customerId, req.user, body)
   }
 
+  @Get('/get/:loanApplicationId')
+  @Roles(Role.Admin, Role.Moderator)
+  async getLoanApplication(
+    @Req() req: IRequest,
+    @Res() res: Response,
+    @Param('loanApplicationId') loanApplicationId: string
+  ) {
+    await this.loanService.getLoanApplication(res, loanApplicationId, req.user)
+  }
+
   @Roles(Role.Admin)
   @Put('/edit/:loanApplicationId')
   async editLoanApplication(

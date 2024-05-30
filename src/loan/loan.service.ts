@@ -104,12 +104,17 @@ export class LoanService {
     async applyLoanApplication(
         res: Response,
         customerId: string,
-        { sub }: ExpressUser,
+        { sub, role }: ExpressUser,
         dto: LoanApplicationDTO
     ) {
         try {
             const customer = await this.prisma.customer.findUnique({
-                where: { id: customerId }
+                where: role === "Admin" ? {
+                    id: customerId
+                } : {
+                    id: customerId,
+                    modminId: sub,
+                }
             })
 
             if (!customer) {
@@ -427,8 +432,8 @@ export class LoanService {
 
     async getLoanApplication(
         res: Response,
+        loanApplicationId: string,
         { sub, role }: ExpressUser,
-        loanApplicationId: string
     ) {
         const loan = await this.prisma.loanApplication.findUnique({
             where: role === "Admin" ? {
@@ -436,7 +441,28 @@ export class LoanService {
             } : {
                 id: loanApplicationId,
                 customer: { modminId: sub }
-            }
+            },
+            include: {
+                customer: {
+                    select: {
+                        id: true,
+                        email: true,
+                        surname: true,
+                        telephone: true,
+                        otherNames: true,
+                        modmin: {
+                            select: {
+                                id: true,
+                                email: true,
+                                surname: true,
+                                otherNames: true,
+                            }
+                        },
+                    }
+                },
+            },
         })
+
+        this.response.sendSuccess(res, StatusCodes.OK, { data: loan })
     }
 }
