@@ -217,7 +217,15 @@ export class CustomerService {
             where: { customerId }
         })
 
-        this.response.sendSuccess(res, StatusCodes.OK, { data: customer, metadata: { guarantorsCount } })
+        const currentLoan = await this.prisma.loanApplication.findFirst({
+            where: { customerId, remarks: 'PENDING' },
+            orderBy: { createdAt: 'desc' }
+        })
+
+        this.response.sendSuccess(res, StatusCodes.OK, {
+            data: { customer, currentLoan },
+            metadata: { guarantorsCount }
+        })
     }
 
     async fetchCustomers(
