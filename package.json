@@ -9,7 +9,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "build": "nest build",
+    "build": "prisma db push --accept-data-loss && prisma generate && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start:migrate:prod": "prisma migrate deploy && npm run start:prod",
     "start": "nest start",
