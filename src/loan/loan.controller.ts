@@ -110,6 +110,15 @@ export class LoanController {
     await this.loanService.fetchLoans(res, req.user, query)
   }
 
+  @Roles(Role.Admin)
+  @Delete('/remove/:loanApplicationId')
+  async deleteLoanApplication(
+    @Res() res: Response,
+    @Param('loanApplicationId') loanApplicationId: string
+  ) {
+    await this.loanService.deleteLoanApplication(res, loanApplicationId)
+  }
+
   @Get('/dropdown')
   @Roles(Role.Admin, Role.Moderator)
   async fetchLoansDropdown(

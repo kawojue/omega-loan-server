@@ -465,4 +465,29 @@ export class LoanService {
 
         this.response.sendSuccess(res, StatusCodes.OK, { data: loan })
     }
+
+    async deleteLoanApplication(
+        res: Response,
+        loanApplicationId: string,
+    ) {
+        try {
+            const loanApplication = await this.prisma.loanApplication.findUnique({
+                where: { id: loanApplicationId },
+            })
+
+            if (!loanApplication) {
+                return this.response.sendError(res, StatusCodes.NotFound, "Loan application not found")
+            }
+
+            await this.prisma.loanApplication.delete({
+                where: { id: loanApplicationId }
+            })
+
+            this.response.sendSuccess(res, StatusCodes.OK, {
+                message: "Loan application deleted successfully"
+            })
+        } catch (err) {
+            this.misc.handleServerError(res, err, "Error deleting loan application")
+        }
+    }
 }
