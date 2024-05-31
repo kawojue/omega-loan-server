@@ -164,10 +164,7 @@ export class CustomerService {
         }
     }
 
-    async deleteCustomer(
-        res: Response,
-        customerId: string
-    ) {
+    async deleteCustomer(res: Response, customerId: string) {
         try {
             const customer = await this.prisma.customer.findUnique({
                 where: { id: customerId },
