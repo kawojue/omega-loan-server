@@ -16,7 +16,7 @@ import {
 export class ModminController {
   constructor(private readonly modminService: ModminService) { }
 
-  // @Post('/signup')
+  @Post('/signup')
   async signup(
     @Res() res: Response,
     @Body() body: CreateModeratorDTO
