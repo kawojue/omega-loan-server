@@ -3,10 +3,10 @@ import {
     UploadApiResponse,
     UploadApiErrorResponse,
 } from 'cloudinary'
+import { randomBytes } from 'crypto'
 import { Injectable } from '@nestjs/common'
 import toStream = require('buffer-to-stream')
 import { ConfigService } from '@nestjs/config'
-import { genFileName } from 'helpers/generator'
 
 @Injectable()
 export class CloudinaryService {
@@ -24,7 +24,7 @@ export class CloudinaryService {
                 const upload = cloudinary.uploader.upload_stream({
                     folder: 'OmegaLoan',
                     resource_type: 'image',
-                    public_id: `${genFileName()}`
+                    public_id: `OmegaLoan_${randomBytes(2).toString('hex')}_${new Date().toDateString().split(" ").join('-')}`
                 }, (error, result) => {
                     if (error) return reject(error)
                     resolve(result)

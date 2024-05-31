@@ -2,7 +2,7 @@ import { StatusCodes } from "enums/statusCodes"
 
 export const validateFile = (file: Express.Multer.File) => {
     const MAX_SIZE = 5 << 20
-    const extensions = ['jpeg', 'png', 'jpg']
+    const allowedExtenstions = ['jpeg', 'png', 'jpg']
 
     if (MAX_SIZE < file.size) {
         return {
@@ -11,7 +11,7 @@ export const validateFile = (file: Express.Multer.File) => {
         }
     }
 
-    if (!extensions.includes(file.originalname.split('.').pop())) {
+    if (!allowedExtenstions.includes(file.originalname.split('.').pop())) {
         return {
             status: StatusCodes.UnsupportedContent,
             message: `${file.originalname} extension is not allowed`,
