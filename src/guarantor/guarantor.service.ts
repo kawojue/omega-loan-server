@@ -40,20 +40,15 @@ export class GuarantorService {
                 return this.response.sendError(res, StatusCodes.NotFound, "Customer not found")
             }
 
-            const serializedCardImage = validateFile(cardImage, 3 << 20, 'jpg', 'png', 'jpeg')
+            const serializedCardImage = validateFile(cardImage)
             if (serializedCardImage?.status) {
                 return this.response.sendError(res, serializedCardImage.status, serializedCardImage.message)
             }
 
-            const serializedPhotographImage = validateFile(photograph, 3 << 20, 'jpg', 'png')
+            const serializedPhotographImage = validateFile(photograph)
             if (serializedCardImage?.status) {
                 return this.response.sendError(res, serializedPhotographImage.status, serializedPhotographImage.message)
             }
-
-            const header = {
-                folder: 'OmegaLoan',
-                resource_type: 'image',
-            } as FileDest
 
             const [{
                 public_id: cardPublicId,
@@ -62,8 +57,8 @@ export class GuarantorService {
                 secure_url: photographUrl,
                 public_id: photographPublicId
             }] = await Promise.all([
-                this.cloudinary.upload(serializedCardImage.file, header),
-                this.cloudinary.upload(serializedPhotographImage.file, header)
+                this.cloudinary.upload(serializedCardImage.file),
+                this.cloudinary.upload(serializedPhotographImage.file)
             ])
 
             const guarantor = await this.prisma.guarantor.create({
@@ -113,7 +108,7 @@ export class GuarantorService {
             let photographPublicId = guarantor.photograph?.public_id
 
             if (cardImage) {
-                const serializedCardImage = validateFile(cardImage, 3 << 20, 'jpg', 'png', 'jpeg')
+                const serializedCardImage = validateFile(cardImage)
                 if (serializedCardImage?.status) {
                     return this.response.sendError(res, serializedCardImage.status, serializedCardImage.message)
                 }
@@ -122,13 +117,13 @@ export class GuarantorService {
                     await this.cloudinary.delete(cardPublicId)
                 }
 
-                const uploadedCardImage = await this.cloudinary.upload(serializedCardImage.file, { folder: 'OmegaLoan', resource_type: 'image' })
+                const uploadedCardImage = await this.cloudinary.upload(serializedCardImage.file)
                 cardImageUrl = uploadedCardImage.secure_url
                 cardPublicId = uploadedCardImage.public_id
             }
 
             if (photograph) {
-                const serializedPhotographImage = validateFile(photograph, 3 << 20, 'jpg', 'png', 'jpeg')
+                const serializedPhotographImage = validateFile(photograph)
                 if (serializedPhotographImage?.status) {
                     return this.response.sendError(res, serializedPhotographImage.status, serializedPhotographImage.message)
                 }
@@ -136,7 +131,7 @@ export class GuarantorService {
                 if (photographPublicId) {
                     await this.cloudinary.delete(photographPublicId)
                 }
-                const uploadedPhotograph = await this.cloudinary.upload(serializedPhotographImage.file, { folder: 'OmegaLoan', resource_type: 'image' })
+                const uploadedPhotograph = await this.cloudinary.upload(serializedPhotographImage.file)
                 photographUrl = uploadedPhotograph.secure_url
                 photographPublicId = uploadedPhotograph.public_id
             }

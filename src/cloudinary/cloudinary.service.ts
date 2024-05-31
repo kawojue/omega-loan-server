@@ -18,13 +18,12 @@ export class CloudinaryService {
         })
     }
 
-    async upload(
-        file: Express.Multer.File, header: FileDest,
-    ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+    async upload(file: Express.Multer.File): Promise<UploadApiResponse | UploadApiErrorResponse> {
         try {
             return new Promise((resolve, reject) => {
                 const upload = cloudinary.uploader.upload_stream({
-                    ...header,
+                    folder: 'OmegaLoan',
+                    resource_type: 'image',
                     public_id: `${genFileName()}`
                 }, (error, result) => {
                     if (error) return reject(error)

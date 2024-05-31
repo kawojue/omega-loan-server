@@ -1,10 +1,10 @@
 import { StatusCodes } from "enums/statusCodes"
 
-export const validateFile = (
-    file: Express.Multer.File,
-    maxSize: number, ...extensions: string[]
-) => {
-    if (maxSize < file.size) {
+export const validateFile = (file: Express.Multer.File) => {
+    const MAX_SIZE = 5 << 20
+    const extensions = ['jpeg', 'png', 'jpg']
+
+    if (MAX_SIZE < file.size) {
         return {
             status: StatusCodes.PayloadTooLarge,
             message: `${file.originalname} is too large`
