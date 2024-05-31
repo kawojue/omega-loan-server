@@ -103,8 +103,9 @@ export class ModminController {
     await this.modminService.analytics(res, req.user)
   }
 
-  @Delete('/remove/:modminId')
+  @ApiBearerAuth()
   @Roles(Role.Admin)
+  @Delete('/remove/:modminId')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   async deleteModmin(
     @Res() res: Response,
