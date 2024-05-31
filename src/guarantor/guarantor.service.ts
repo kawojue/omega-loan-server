@@ -40,7 +40,7 @@ export class GuarantorService {
                 return this.response.sendError(res, StatusCodes.NotFound, "Customer not found")
             }
 
-            const serializedCardImage = validateFile(cardImage, 3 << 20, 'jpg', 'png')
+            const serializedCardImage = validateFile(cardImage, 3 << 20, 'jpg', 'png', 'jpeg')
             if (serializedCardImage?.status) {
                 return this.response.sendError(res, serializedCardImage.status, serializedCardImage.message)
             }
@@ -113,7 +113,7 @@ export class GuarantorService {
             let photographPublicId = guarantor.photograph?.public_id
 
             if (cardImage) {
-                const serializedCardImage = validateFile(cardImage, 3 << 20, 'jpg', 'png')
+                const serializedCardImage = validateFile(cardImage, 3 << 20, 'jpg', 'png', 'jpeg')
                 if (serializedCardImage?.status) {
                     return this.response.sendError(res, serializedCardImage.status, serializedCardImage.message)
                 }
@@ -128,7 +128,7 @@ export class GuarantorService {
             }
 
             if (photograph) {
-                const serializedPhotographImage = validateFile(photograph, 3 << 20, 'jpg', 'png')
+                const serializedPhotographImage = validateFile(photograph, 3 << 20, 'jpg', 'png', 'jpeg')
                 if (serializedPhotographImage?.status) {
                     return this.response.sendError(res, serializedPhotographImage.status, serializedPhotographImage.message)
                 }
