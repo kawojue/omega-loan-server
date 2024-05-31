@@ -2,7 +2,9 @@ import { Gender } from '@prisma/client'
 import { Transform } from 'class-transformer'
 import { ApiProperty, PartialType } from '@nestjs/swagger'
 import { titleText, toLowerCase } from 'helpers/transformer'
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsEnum } from 'class-validator'
+import {
+    IsEmail, IsNotEmpty, IsString, MinLength, IsEnum, IsOptional
+} from 'class-validator'
 
 export class CreateModeratorDTO {
     @ApiProperty({
@@ -20,13 +22,13 @@ export class CreateModeratorDTO {
         required: true,
     })
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     @MinLength(3)
     @Transform(({ value }) => titleText(value))
     otherNames: string
 
     @ApiProperty({
-        example: 'admin@omega.com',
+        example: 'mod@omega.com',
         required: true,
     })
     @IsEmail()
@@ -36,7 +38,7 @@ export class CreateModeratorDTO {
     email: string
 
     @ApiProperty({
-        example: 'admin123',
+        example: 'Mypswd123',
         required: true,
     })
     @IsString()
