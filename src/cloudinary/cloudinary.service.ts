@@ -24,7 +24,7 @@ export class CloudinaryService {
                 const upload = cloudinary.uploader.upload_stream({
                     folder: 'OmegaLoan',
                     resource_type: 'image',
-                    public_id: `OmegaLoan_${randomBytes(2).toString('hex')}_${new Date().toDateString().split(" ").join('-')}`
+                    public_id: `OmegaLoan_${randomBytes(4).toString('hex')}_${new Date().toDateString().split(" ").join('-')}`
                 }, (error, result) => {
                     if (error) return reject(error)
                     resolve(result)
