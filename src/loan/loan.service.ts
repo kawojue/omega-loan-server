@@ -1,3 +1,4 @@
+const ExcelJS = require('exceljs')
 import { Response } from 'express'
 import { Injectable } from '@nestjs/common'
 import { MiscService } from 'lib/misc.service'
@@ -5,8 +6,10 @@ import { StatusCodes } from 'enums/statusCodes'
 import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
 import { LoanCategoryDTO } from './dto/loan-catogory.dto'
+import {
+    FetchLoansByLoanTypeDTO, InfiniteScrollDTO, LoanPaginationDTO, SearchDTO
+} from 'src/customer/dto/infinite-scroll.dto'
 import { LoanApplicationDTO, UpdateLoanApplicationDTO } from './dto/apply-loan.dto'
-import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
 
 @Injectable()
 export class LoanService {
@@ -84,7 +87,6 @@ export class LoanService {
     ) {
         page = Number(page)
         limit = Number(limit)
-        search = search?.trim() ?? ''
         const offset = (page - 1) * limit
 
         const loanCategories = await this.prisma.loanCategory.findMany({
@@ -290,7 +292,7 @@ export class LoanService {
         try {
             page = Number(page)
             limit = Number(limit)
-            search = search?.trim() ?? ''
+
             const offset = (page - 1) * limit
 
             const OR: ({
@@ -372,7 +374,6 @@ export class LoanService {
         { search }: SearchDTO,
         { sub, role }: ExpressUser,
     ) {
-        search = search?.trim() ?? ''
 
         const OR: ({
             customer: {
@@ -489,5 +490,252 @@ export class LoanService {
         } catch (err) {
             this.misc.handleServerError(res, err, "Error deleting loan application")
         }
+    }
+
+    async fetchLoansByLoanType(
+        res: Response,
+        {
+            limit = 20, page = 1, search = '', type,
+        }: FetchLoansByLoanTypeDTO,
+    ) {
+        page = Number(page)
+        limit = Number(limit)
+        const offset = (page - 1) * limit
+
+        const OR: ({
+            customer: {
+                email: {
+                    contains: string
+                    mode: "insensitive"
+                }
+            }
+        } | {
+            customer: {
+                surname: {
+                    contains: string
+                    mode: "insensitive"
+                }
+            }
+        } | {
+            customer: {
+                otherNames: {
+                    contains: string
+                    mode: "insensitive"
+                }
+            }
+        })[] = [
+                { customer: { email: { contains: search, mode: 'insensitive' } } },
+                { customer: { surname: { contains: search, mode: 'insensitive' } } },
+                { customer: { otherNames: { contains: search, mode: 'insensitive' } } },
+            ]
+
+        const loans = await this.prisma.loanApplication.findMany({
+            where: { loanType: type, OR },
+            take: limit,
+            skip: offset,
+            include: {
+                customer: {
+                    select: {
+                        id: true,
+                        email: true,
+                        surname: true,
+                        telephone: true,
+                        otherNames: true,
+                        modmin: {
+                            select: {
+                                id: true,
+                                email: true,
+                                surname: true,
+                                otherNames: true,
+                            }
+                        },
+                    }
+                },
+            },
+        })
+
+        const length = await this.prisma.loanApplication.count({
+            where: { loanType: type, OR },
+        })
+
+        const totalPages = Math.ceil(length / limit)
+
+        this.response.sendSuccess(res, StatusCodes.OK, {
+            data: loans,
+            metadata: { length, totalPages }
+        })
+    }
+
+    async fetchLoansByModerator(res: Response, moderatorId: string) {
+        const moderator = await this.prisma.modmin.findUnique({
+            where: { id: moderatorId }
+        })
+
+        if (!moderator) {
+            return this.response.sendError(res, StatusCodes.NotFound, "Account officer not found")
+        }
+
+        const loans = await this.prisma.loanApplication.findMany({
+            where: { modminId: moderatorId },
+            include: {
+                customer: {
+                    select: {
+                        id: true,
+                        email: true,
+                        surname: true,
+                        telephone: true,
+                        otherNames: true,
+                        modmin: {
+                            select: {
+                                id: true,
+                                email: true,
+                                surname: true,
+                                otherNames: true,
+                            }
+                        },
+                    }
+                },
+            }
+        })
+
+        this.response.sendSuccess(res, StatusCodes.OK, { data: loans })
+    }
+
+    async exportLoans(
+        { sub, role }: ExpressUser,
+        {
+            page = 1, limit = 200
+        }: LoanPaginationDTO
+    ) {
+        page = Number(page)
+        limit = Number(limit)
+        const offset = (page - 1) * limit
+
+        const workbook = new ExcelJS.Workbook()
+        workbook.creator = 'Omega Loans'
+        const worksheet = workbook.addWorksheet('Loans')
+
+        const loans = await this.prisma.loanApplication.findMany({
+            where: role === "Admin" ? {} : { modminId: sub },
+            take: limit,
+            skip: offset,
+            include: {
+                customer: {
+                    select: {
+                        id: true,
+                        email: true,
+                        surname: true,
+                        telephone: true,
+                        otherNames: true,
+                        modmin: {
+                            select: {
+                                id: true,
+                                email: true,
+                                surname: true,
+                                otherNames: true,
+                            }
+                        },
+                    }
+                },
+            },
+        })
+
+        const headerRow = worksheet.addRow([
+            'Loan ID', 'Customer ID', 'Customer Email', 'Customer Surname',
+            'Customer Telephone', 'Customer Other Names',
+            'Officer ID', 'Officer Email', 'Officer Surname', 'Officer Other Names',
+            'Loan Amount', 'Management Fee', 'Application Fee', 'Equity',
+            'Loan Tenure', 'Pre-Loan Amount', 'Pre-Loan Tenure',
+            'Office Address', 'Salary Date', 'Salary Amount', 'Bank Name',
+            'Bank Account Number', 'Outstanding Loans', 'Remarks',
+            'Created At', 'Last Updated', 'Disbursed Date'
+        ])
+
+        headerRow.eachCell((cell) => {
+            cell.font = { bold: true, size: 14 }
+            cell.alignment = { vertical: 'middle', horizontal: 'center' }
+        })
+
+        loans.forEach(loan => {
+            const customer = loan.customer
+            const modmin = customer.modmin
+
+            worksheet.addRow([
+                loan.id,
+                customer.id,
+                customer.email,
+                customer.surname,
+                customer.telephone,
+                customer.otherNames,
+                modmin.id,
+                modmin.email,
+                modmin.surname,
+                modmin.otherNames,
+                loan.loanAmount,
+                loan.managementFee,
+                loan.applicationFee,
+                loan.equity,
+                loan.loanTenure,
+                loan.preLoanAmount,
+                loan.preLoanTenure,
+                loan.officeAddress,
+                loan.salaryDate ? new Date(loan.salaryDate).toDateString() : '',
+                loan.salaryAmount,
+                loan.bankName,
+                loan.bankAccNumber,
+                loan.outstandingLoans,
+                loan.remarks,
+                new Date(loan.createdAt).toDateString(),
+                new Date(loan.updatedAt).toDateString(),
+                loan.disbursedDate ? new Date(loan.disbursedDate).toDateString() : ''
+            ])
+        })
+
+        worksheet.columns.forEach(column => {
+            let maxLength = 0
+            column.eachCell({ includeEmpty: true }, cell => {
+                maxLength = Math.max(maxLength, cell.value ? cell.value.toString().length : 10)
+            })
+            column.width = maxLength + 2
+        })
+
+        return await workbook.xlsx.writeBuffer() as Buffer
+    }
+
+    async exportLoan(
+        loanApplicationId: string,
+        { sub, role }: ExpressUser,
+    ) {
+        const loan = await this.prisma.loanApplication.findUnique({
+            where: role === "Admin" ? {
+                id: loanApplicationId
+            } : {
+                id: loanApplicationId,
+                customer: { modminId: sub }
+            },
+            include: {
+                customer: {
+                    select: {
+                        id: true,
+                        email: true,
+                        surname: true,
+                        telephone: true,
+                        otherNames: true,
+                        modmin: {
+                            select: {
+                                id: true,
+                                email: true,
+                                surname: true,
+                                otherNames: true,
+                            }
+                        },
+                    }
+                },
+            },
+        })
+
+        const workbook = new ExcelJS.Workbook()
+        workbook.creator = 'Omega Loans'
+        const worksheet = workbook.addWorksheet('Loan')
     }
 }

@@ -4,16 +4,19 @@ import { Roles } from 'src/role.decorator'
 import { LoanService } from './loan.service'
 import { AuthGuard } from '@nestjs/passport'
 import {
+  FetchLoansByLoanTypeDTO,
+  InfiniteScrollDTO, LoanPaginationDTO, SearchDTO
+} from 'src/customer/dto/infinite-scroll.dto'
+import {
   Body, Controller, Delete, Param, Patch,
   Post, Put, Query, Req, Res, Get, UseGuards,
+  HttpException,
 } from '@nestjs/common'
-import {
-  InfiniteScrollDTO, SearchDTO
-} from 'src/customer/dto/infinite-scroll.dto'
 import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { LoanCategoryDTO } from './dto/loan-catogory.dto'
 import { LoanApplicationDTO, UpdateLoanApplicationDTO } from './dto/apply-loan.dto'
+import { StatusCodes } from 'enums/statusCodes'
 
 @ApiTags("Loan")
 @ApiBearerAuth()
@@ -79,6 +82,18 @@ export class LoanController {
     await this.loanService.applyLoanApplication(res, customerId, req.user, body)
   }
 
+  @Roles(Role.Admin)
+  @Get('/loans-by-loanType')
+  async fetchLoansByLoanType(@Res() res: Response, @Query() q: FetchLoansByLoanTypeDTO) {
+    await this.loanService.fetchLoansByLoanType(res, q)
+  }
+
+  @Roles(Role.Admin)
+  @Get('/loans-by-officers')
+  async fetchLoansByModerator(@Res() res: Response, @Param('moderatorId') moderatorId: string) {
+    await this.loanService.fetchLoansByModerator(res, moderatorId)
+  }
+
   @Get('/get/:loanApplicationId')
   @Roles(Role.Admin, Role.Moderator)
   async getLoanApplication(
@@ -136,5 +151,28 @@ export class LoanController {
     @Query() query: SearchDTO
   ) {
     await this.loanService.fetchLoansDropdown(res, query, req.user)
+  }
+
+  @Get('/export')
+  @Roles(Role.Admin)
+  async exportLoans(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Query() q: LoanPaginationDTO
+  ) {
+    try {
+      const excelData: Buffer = await this.loanService.exportLoans(req.user, q)
+
+      res.writeHead(200, {
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': 'attachment; filename=users.xlsx',
+        'Content-Length': excelData.length
+      })
+
+      res.end(excelData)
+    } catch (err) {
+      console.error(err)
+      throw new HttpException("Error downloading report", StatusCodes.InternalServerError)
+    }
   }
 }

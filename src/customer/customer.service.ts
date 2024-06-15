@@ -235,7 +235,6 @@ export class CustomerService {
         try {
             page = Number(page)
             limit = Number(limit)
-            search = search?.trim() ?? ''
             const offset = (page - 1) * limit
 
             const OR: ({

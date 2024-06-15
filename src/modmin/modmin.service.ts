@@ -6,7 +6,7 @@ import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
 import { EncryptionService } from 'lib/encryption.service'
 import { CreateModeratorDTO, UpdateModeratorDTO } from './dto/moderator.dto'
-import { InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
+import { FetchLoansByLoanTypeDTO, InfiniteScrollDTO, SearchDTO } from 'src/customer/dto/infinite-scroll.dto'
 
 @Injectable()
 export class ModminService {
@@ -165,7 +165,6 @@ export class ModminService {
         try {
             page = Number(page)
             limit = Number(limit)
-            search = search?.trim() ?? ''
             const offset = (page - 1) * limit
 
             const moderators = await this.prisma.modmin.findMany({
