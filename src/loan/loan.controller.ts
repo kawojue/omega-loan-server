@@ -4,19 +4,18 @@ import { Roles } from 'src/role.decorator'
 import { LoanService } from './loan.service'
 import { AuthGuard } from '@nestjs/passport'
 import {
-  FetchLoansByLoanTypeDTO,
-  InfiniteScrollDTO, LoanPaginationDTO, SearchDTO
-} from 'src/customer/dto/infinite-scroll.dto'
-import {
   Body, Controller, Delete, Param, Patch,
   Post, Put, Query, Req, Res, Get, UseGuards,
   HttpException,
 } from '@nestjs/common'
+import {
+  FetchLoansDTO, InfiniteScrollDTO, SearchDTO
+} from 'src/customer/dto/infinite-scroll.dto'
+import { StatusCodes } from 'enums/statusCodes'
 import { RolesGuard } from 'src/jwt/jwt-auth.guard'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { LoanCategoryDTO } from './dto/loan-catogory.dto'
 import { LoanApplicationDTO, UpdateLoanApplicationDTO } from './dto/apply-loan.dto'
-import { StatusCodes } from 'enums/statusCodes'
 
 @ApiTags("Loan")
 @ApiBearerAuth()
@@ -83,12 +82,6 @@ export class LoanController {
   }
 
   @Roles(Role.Admin)
-  @Get('/loans-by-loanType')
-  async fetchLoansByLoanType(@Res() res: Response, @Query() q: FetchLoansByLoanTypeDTO) {
-    await this.loanService.fetchLoansByLoanType(res, q)
-  }
-
-  @Roles(Role.Admin)
   @Get('/loans-by-officers')
   async fetchLoansByModerator(@Res() res: Response, @Param('moderatorId') moderatorId: string) {
     await this.loanService.fetchLoansByModerator(res, moderatorId)
@@ -129,7 +122,7 @@ export class LoanController {
   async fetchLoans(
     @Req() req: IRequest,
     @Res() res: Response,
-    @Query() query: InfiniteScrollDTO
+    @Query() query: FetchLoansDTO
   ) {
     await this.loanService.fetchLoans(res, req.user, query)
   }

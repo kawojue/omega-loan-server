@@ -3,12 +3,12 @@ import { Response } from 'express'
 import { Injectable } from '@nestjs/common'
 import { MiscService } from 'lib/misc.service'
 import { StatusCodes } from 'enums/statusCodes'
+import {
+    FetchLoansDTO, InfiniteScrollDTO, SearchDTO
+} from 'src/customer/dto/infinite-scroll.dto'
 import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
 import { LoanCategoryDTO } from './dto/loan-catogory.dto'
-import {
-    FetchLoansByLoanTypeDTO, InfiniteScrollDTO, SearchDTO
-} from 'src/customer/dto/infinite-scroll.dto'
 import { LoanApplicationDTO, UpdateLoanApplicationDTO } from './dto/apply-loan.dto'
 
 @Injectable()
@@ -286,8 +286,8 @@ export class LoanService {
         res: Response,
         { sub, role }: ExpressUser,
         {
-            limit = 20, page = 1, search = ''
-        }: InfiniteScrollDTO,
+            limit = 20, page = 1, search = '', type
+        }: FetchLoansDTO,
     ) {
         try {
             page = Number(page)
@@ -323,9 +323,10 @@ export class LoanService {
                 ]
 
             const loans = await this.prisma.loanApplication.findMany({
-                where: role === "Admin" ? { OR } : {
+                where: role === "Admin" ? { OR, loanType: type ? type : undefined } : {
                     modminId: sub,
                     OR,
+                    loanType: type ? type : undefined
                 },
                 include: {
                     customer: {
@@ -352,10 +353,11 @@ export class LoanService {
             })
 
             const length = await this.prisma.loanApplication.count({
-                where: role === "Admin" ? { OR } : {
+                where: role === "Admin" ? { OR, loanType: type ? type : undefined } : {
                     modminId: sub,
                     OR,
-                }
+                    loanType: type ? type : undefined
+                },
             })
 
             const totalPages = Math.ceil(length / limit)
@@ -490,80 +492,6 @@ export class LoanService {
         } catch (err) {
             this.misc.handleServerError(res, err, "Error deleting loan application")
         }
-    }
-
-    async fetchLoansByLoanType(
-        res: Response,
-        {
-            limit = 20, page = 1, search = '', type,
-        }: FetchLoansByLoanTypeDTO,
-    ) {
-        page = Number(page)
-        limit = Number(limit)
-        const offset = (page - 1) * limit
-
-        const OR: ({
-            customer: {
-                email: {
-                    contains: string
-                    mode: "insensitive"
-                }
-            }
-        } | {
-            customer: {
-                surname: {
-                    contains: string
-                    mode: "insensitive"
-                }
-            }
-        } | {
-            customer: {
-                otherNames: {
-                    contains: string
-                    mode: "insensitive"
-                }
-            }
-        })[] = [
-                { customer: { email: { contains: search, mode: 'insensitive' } } },
-                { customer: { surname: { contains: search, mode: 'insensitive' } } },
-                { customer: { otherNames: { contains: search, mode: 'insensitive' } } },
-            ]
-
-        const loans = await this.prisma.loanApplication.findMany({
-            where: { loanType: type, OR },
-            take: limit,
-            skip: offset,
-            include: {
-                customer: {
-                    select: {
-                        id: true,
-                        email: true,
-                        surname: true,
-                        telephone: true,
-                        otherNames: true,
-                        modmin: {
-                            select: {
-                                id: true,
-                                email: true,
-                                surname: true,
-                                otherNames: true,
-                            }
-                        },
-                    }
-                },
-            },
-        })
-
-        const length = await this.prisma.loanApplication.count({
-            where: { loanType: type, OR },
-        })
-
-        const totalPages = Math.ceil(length / limit)
-
-        this.response.sendSuccess(res, StatusCodes.OK, {
-            data: loans,
-            metadata: { length, totalPages }
-        })
     }
 
     async fetchLoansByModerator(res: Response, moderatorId: string) {

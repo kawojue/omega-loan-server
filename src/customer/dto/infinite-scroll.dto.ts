@@ -27,31 +27,11 @@ export class InfiniteScrollDTO extends SearchDTO {
     limit?: number
 }
 
-export class LoanPaginationDTO {
-    @ApiProperty({
-        example: 1
-    })
-    @IsOptional()
-    page?: number
-
-    @ApiProperty({
-        example: 30
-    })
-    @IsOptional()
-    limit?: number
-
+export class FetchLoansDTO extends InfiniteScrollDTO {
     @ApiProperty({
         enum: LoanType
     })
     @IsOptional()
     @IsEnum(LoanType)
     type?: LoanType
-}
-
-export class FetchLoansByLoanTypeDTO extends InfiniteScrollDTO {
-    @ApiProperty({
-        enum: LoanType
-    })
-    @IsEnum(LoanType)
-    type: LoanType
 }
