@@ -154,14 +154,33 @@ export class LoanController {
   }
 
   @Get('/export')
-  @Roles(Role.Admin)
-  async exportLoans(
-    @Res() res: Response,
+  @Roles(Role.Admin, Role.Moderator)
+  async exportLoans(@Res() res: Response, @Req() req: IRequest) {
+    try {
+      const excelData: Buffer = await this.loanService.exportLoans(req.user)
+
+      res.writeHead(200, {
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': 'attachment; filename=users.xlsx',
+        'Content-Length': excelData.length
+      })
+
+      res.end(excelData)
+    } catch (err) {
+      console.error(err)
+      throw new HttpException("Error downloading report", StatusCodes.InternalServerError)
+    }
+  }
+
+  @Get('/export/loanApplicationId')
+  @Roles(Role.Admin, Role.Moderator)
+  async exportLoan(
     @Req() req: IRequest,
-    @Query() q: LoanPaginationDTO
+    @Res() res: Response,
+    @Param('loanApplicationId') loanApplicationId: string
   ) {
     try {
-      const excelData: Buffer = await this.loanService.exportLoans(req.user, q)
+      const excelData: Buffer = await this.loanService.exportLoan(res, loanApplicationId, req.user)
 
       res.writeHead(200, {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

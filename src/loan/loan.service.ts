@@ -7,7 +7,7 @@ import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
 import { LoanCategoryDTO } from './dto/loan-catogory.dto'
 import {
-    FetchLoansByLoanTypeDTO, InfiniteScrollDTO, LoanPaginationDTO, SearchDTO
+    FetchLoansByLoanTypeDTO, InfiniteScrollDTO, SearchDTO
 } from 'src/customer/dto/infinite-scroll.dto'
 import { LoanApplicationDTO, UpdateLoanApplicationDTO } from './dto/apply-loan.dto'
 
@@ -601,24 +601,13 @@ export class LoanService {
         this.response.sendSuccess(res, StatusCodes.OK, { data: loans })
     }
 
-    async exportLoans(
-        { sub, role }: ExpressUser,
-        {
-            page = 1, limit = 200
-        }: LoanPaginationDTO
-    ) {
-        page = Number(page)
-        limit = Number(limit)
-        const offset = (page - 1) * limit
-
+    async exportLoans({ sub, role }: ExpressUser) {
         const workbook = new ExcelJS.Workbook()
         workbook.creator = 'Omega Loans'
         const worksheet = workbook.addWorksheet('Loans')
 
         const loans = await this.prisma.loanApplication.findMany({
             where: role === "Admin" ? {} : { modminId: sub },
-            take: limit,
-            skip: offset,
             include: {
                 customer: {
                     select: {
@@ -703,6 +692,7 @@ export class LoanService {
     }
 
     async exportLoan(
+        res: Response,
         loanApplicationId: string,
         { sub, role }: ExpressUser,
     ) {
@@ -734,8 +724,72 @@ export class LoanService {
             },
         })
 
+        if (!loan) {
+            return this.response.sendError(res, StatusCodes.NotFound, "Loan Application not found")
+        }
+
         const workbook = new ExcelJS.Workbook()
         workbook.creator = 'Omega Loans'
         const worksheet = workbook.addWorksheet('Loan')
+
+        const headerRow = worksheet.addRow([
+            'Loan ID', 'Customer ID', 'Customer Email', 'Customer Surname',
+            'Customer Telephone', 'Customer Other Names',
+            'Officer ID', 'Officer Email', 'Officer Surname', 'Officer Other Names',
+            'Loan Amount', 'Management Fee', 'Application Fee', 'Equity',
+            'Loan Tenure', 'Pre-Loan Amount', 'Pre-Loan Tenure',
+            'Office Address', 'Salary Date', 'Salary Amount', 'Bank Name',
+            'Bank Account Number', 'Outstanding Loans', 'Remarks',
+            'Created At', 'Updated At', 'Disbursed Date'
+        ])
+
+        headerRow.eachCell((cell) => {
+            cell.font = { bold: true, size: 14 }
+            cell.alignment = { vertical: 'middle', horizontal: 'center' }
+        })
+
+        const customer = loan.customer
+        const modmin = customer.modmin
+
+        worksheet.addRow([
+            loan.id,
+            customer.id,
+            customer.email,
+            customer.surname,
+            customer.telephone,
+            customer.otherNames,
+            modmin.id,
+            modmin.email,
+            modmin.surname,
+            modmin.otherNames,
+            loan.loanAmount,
+            loan.managementFee,
+            loan.applicationFee,
+            loan.equity,
+            loan.loanTenure,
+            loan.preLoanAmount,
+            loan.preLoanTenure,
+            loan.officeAddress,
+            loan.salaryDate ? new Date(loan.salaryDate).toDateString() : '',
+            loan.salaryAmount,
+            loan.bankName,
+            loan.bankAccNumber,
+            loan.outstandingLoans,
+            loan.remarks,
+            new Date(loan.createdAt).toDateString(),
+            new Date(loan.updatedAt).toDateString(),
+            loan.disbursedDate ? new Date(loan.disbursedDate).toDateString() : ''
+        ])
+
+        worksheet.columns.forEach(column => {
+            let maxLength = 0
+            column.eachCell({ includeEmpty: true }, cell => {
+                maxLength = Math.max(maxLength, cell.value ? cell.value.toString().length : 10)
+            })
+            column.width = maxLength + 2
+        })
+
+        const buffer = await workbook.xlsx.writeBuffer()
+        return buffer
     }
 }
