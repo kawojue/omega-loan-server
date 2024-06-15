@@ -14,7 +14,6 @@ async function bootstrap() {
       `http://localhost:3001`,
       `http://localhost:${PORT}`,
       `https://api.omegasupportaccessltd.com`,
-      `https://omega-loan-server.onrender.com`,
     ],
     credentials: true,
     optionsSuccessStatus: 200,
@@ -29,7 +28,6 @@ async function bootstrap() {
     .setTitle('Omega Documentation')
     .setDescription('All API Endpoints')
     .setVersion('1.0.1')
-    .addServer(`https://omega-loan-server.onrender.com`, 'Staging')
     .addServer('https://api.omegasupportaccessltd.com', 'Production')
     .addServer(`http://localhost:${PORT}`, 'Local environment')
     .addBearerAuth()

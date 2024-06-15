@@ -172,7 +172,7 @@ export class LoanController {
     }
   }
 
-  @Get('/export/loanApplicationId')
+  @Get('/export/:loanApplicationId')
   @Roles(Role.Admin, Role.Moderator)
   async exportLoan(
     @Req() req: IRequest,
