@@ -47,6 +47,14 @@ export class ModminController {
   }
 
   @ApiBearerAuth()
+  @Get('/moderators/dropdown')
+  @Roles(Role.Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  async moderatorsDropdown(@Res() res: Response, @Query() query: SearchDTO) {
+    await this.modminService.moderatorsDropdown(res, query)
+  }
+
+  @ApiBearerAuth()
   @Roles(Role.Admin)
   @Put('/moderators/:moderatorId')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -62,22 +70,8 @@ export class ModminController {
   @Roles(Role.Admin)
   @Get('/moderators/:moderatorId')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  async getModerator(
-    @Res() res: Response,
-    @Param('moderatorId') moderatorId: string
-  ) {
+  async getModerator(@Res() res: Response, @Param('moderatorId') moderatorId: string) {
     await this.modminService.getModerator(res, moderatorId)
-  }
-
-  @ApiBearerAuth()
-  @Get('/moderators/dropdown')
-  @Roles(Role.Admin)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  async moderatorsDropdown(
-    @Res() res: Response,
-    @Query() query: SearchDTO,
-  ) {
-    await this.modminService.moderatorsDropdown(res, query)
   }
 
   @ApiBearerAuth()

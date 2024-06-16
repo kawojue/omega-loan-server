@@ -214,10 +214,7 @@ export class ModminService {
         }
     }
 
-    async moderatorsDropdown(
-        res: Response,
-        { search }: SearchDTO,
-    ) {
+    async moderatorsDropdown(res: Response, { search }: SearchDTO) {
         const moderators = await this.prisma.modmin.findMany({
             where: {
                 role: 'Moderator',
