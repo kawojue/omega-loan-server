@@ -655,7 +655,7 @@ export class LoanService {
 
         const workbook = new ExcelJS.Workbook()
         workbook.creator = 'Omega Loans'
-        const worksheet = workbook.addWorksheet('Loan')
+        const worksheet = workbook.addWorksheet(`Loan - ${loan.customer.surname}`)
 
         const headerRow = worksheet.addRow([
             'Customer Email', 'Customer Surname',
