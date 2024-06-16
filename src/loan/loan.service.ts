@@ -558,9 +558,9 @@ export class LoanService {
         })
 
         const headerRow = worksheet.addRow([
-            'Loan ID', 'Customer ID', 'Customer Email', 'Customer Surname',
+            'Customer Email', 'Customer Surname',
             'Customer Telephone', 'Customer Other Names',
-            'Officer ID', 'Officer Email', 'Officer Surname', 'Officer Other Names',
+            'Officer Email', 'Officer Surname', 'Officer Other Names',
             'Loan Amount', 'Management Fee', 'Application Fee', 'Equity',
             'Loan Tenure', 'Pre-Loan Amount', 'Pre-Loan Tenure',
             'Office Address', 'Salary Date', 'Salary Amount', 'Bank Name',
@@ -578,13 +578,10 @@ export class LoanService {
             const modmin = customer.modmin
 
             worksheet.addRow([
-                loan.id,
-                customer.id,
                 customer.email,
                 customer.surname,
                 customer.telephone,
                 customer.otherNames,
-                modmin.id,
                 modmin.email,
                 modmin.surname,
                 modmin.otherNames,
@@ -661,9 +658,9 @@ export class LoanService {
         const worksheet = workbook.addWorksheet('Loan')
 
         const headerRow = worksheet.addRow([
-            'Loan ID', 'Customer ID', 'Customer Email', 'Customer Surname',
+            'Customer Email', 'Customer Surname',
             'Customer Telephone', 'Customer Other Names',
-            'Officer ID', 'Officer Email', 'Officer Surname', 'Officer Other Names',
+            'Officer Email', 'Officer Surname', 'Officer Other Names',
             'Loan Amount', 'Management Fee', 'Application Fee', 'Equity',
             'Loan Tenure', 'Pre-Loan Amount', 'Pre-Loan Tenure',
             'Office Address', 'Salary Date', 'Salary Amount', 'Bank Name',
@@ -680,13 +677,10 @@ export class LoanService {
         const modmin = customer.modmin
 
         worksheet.addRow([
-            loan.id,
-            customer.id,
             customer.email,
             customer.surname,
             customer.telephone,
             customer.otherNames,
-            modmin.id,
             modmin.email,
             modmin.surname,
             modmin.otherNames,
