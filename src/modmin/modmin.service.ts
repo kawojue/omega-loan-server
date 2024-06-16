@@ -179,6 +179,17 @@ export class ModminService {
                 take: limit,
                 skip: offset,
                 orderBy: { createdAt: 'desc' },
+                select: {
+                    id: true,
+                    role: true,
+                    email: true,
+                    gender: true,
+                    status: true,
+                    surname: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    otherNames: true,
+                }
             })
 
             const length = await this.prisma.modmin.count({

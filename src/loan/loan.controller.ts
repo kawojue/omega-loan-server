@@ -82,7 +82,7 @@ export class LoanController {
   }
 
   @Roles(Role.Admin)
-  @Get('/loans-by-officers')
+  @Get('/loans-by-officers/:moderatorId')
   async fetchLoansByModerator(@Res() res: Response, @Param('moderatorId') moderatorId: string) {
     await this.loanService.fetchLoansByModerator(res, moderatorId)
   }
@@ -154,7 +154,7 @@ export class LoanController {
 
       res.writeHead(200, {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': 'attachment; filename=users.xlsx',
+        'Content-Disposition': 'attachment; filename=loans.xlsx',
         'Content-Length': excelData.length
       })
 
@@ -177,7 +177,7 @@ export class LoanController {
 
       res.writeHead(200, {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': 'attachment; filename=users.xlsx',
+        'Content-Disposition': 'attachment; filename=loan.xlsx',
         'Content-Length': excelData.length
       })
 
