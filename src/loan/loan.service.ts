@@ -558,7 +558,7 @@ export class LoanService {
         })
 
         const headerRow = worksheet.addRow([
-            'Customer Email', 'Customer Surname',
+            'S/N', 'Customer Email', 'Customer Surname',
             'Customer Telephone', 'Customer Other Names',
             'Officer Email', 'Officer Surname', 'Officer Other Names',
             'Loan Amount', 'Management Fee', 'Application Fee', 'Equity',
@@ -573,11 +573,15 @@ export class LoanService {
             cell.alignment = { vertical: 'middle', horizontal: 'center' }
         })
 
+        let sn = 0
+
         loans.forEach(loan => {
             const customer = loan.customer
             const modmin = customer.modmin
+            sn += 1
 
             worksheet.addRow([
+                sn,
                 customer.email,
                 customer.surname,
                 customer.telephone,
@@ -610,7 +614,7 @@ export class LoanService {
             column.eachCell({ includeEmpty: true }, cell => {
                 maxLength = Math.max(maxLength, cell.value ? cell.value.toString().length : 10)
             })
-            column.width = maxLength + 2
+            column.width = maxLength + 10
         })
 
         return await workbook.xlsx.writeBuffer() as Buffer
