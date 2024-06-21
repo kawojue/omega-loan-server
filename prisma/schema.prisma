@@ -79,14 +79,14 @@ model LoanCategory {
 }
 
 model LoanApplication {
-    id               String     @id @default(auto()) @map("_id") @db.ObjectId
+    id               String      @id @default(auto()) @map("_id") @db.ObjectId
     loanType         LoanType?
-    loanAmount       Float      @default(0.0)
-    managementFee    Float?     @default(0.0)
-    applicationFee   Float?     @default(3000.0)
-    equity           Float?     @default(0.0)
+    loanAmount       Float       @default(0.0)
+    managementFee    Float?      @default(0.0)
+    applicationFee   Float?      @default(3000.0)
+    equity           Float?      @default(0.0)
     disbursedDate    DateTime
-    loanTenure       String
+    loanTenure       Int
     preLoanAmount    Float?
     preLoanTenure    String?
     officeAddress    String
@@ -95,13 +95,13 @@ model LoanApplication {
     bankName         String?
     bankAccNumber    String?
     outstandingLoans YesNo?
-    remarks          LoanRemark @default(PENDING)
-    modmin           Modmin     @relation(references: [id], fields: [modminId])
-    modminId         String     @db.ObjectId
-    customer         Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
-    customerId       String     @db.ObjectId
-    createdAt        DateTime   @default(now())
-    updatedAt        DateTime   @updatedAt
+    remarks          LoanRemark? @default(PENDING)
+    modmin           Modmin      @relation(references: [id], fields: [modminId])
+    modminId         String      @db.ObjectId
+    customer         Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+    customerId       String      @db.ObjectId
+    createdAt        DateTime    @default(now())
+    updatedAt        DateTime    @updatedAt
 }
 
 enum Role {
