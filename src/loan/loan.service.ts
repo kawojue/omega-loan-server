@@ -1,6 +1,7 @@
 const ExcelJS = require('exceljs')
 import { Response } from 'express'
 import { Injectable } from '@nestjs/common'
+import { PaybackMonth } from '@prisma/client'
 import { MiscService } from 'lib/misc.service'
 import { StatusCodes } from 'enums/statusCodes'
 import {
@@ -9,6 +10,7 @@ import {
 import { PrismaService } from 'lib/prisma.service'
 import { ResponseService } from 'lib/response.service'
 import { LoanCategoryDTO } from './dto/loan-catogory.dto'
+import { addMonths, isLeapYear, lastDayOfMonth, format } from 'date-fns'
 import { LoanApplicationDTO, UpdateLoanApplicationDTO } from './dto/apply-loan.dto'
 
 @Injectable()
@@ -18,6 +20,36 @@ export class LoanService {
         private readonly prisma: PrismaService,
         private readonly response: ResponseService,
     ) { }
+
+    private async hasLoanCompleted(loanId: string) {
+        const loan = await this.prisma.loanApplication.findUnique({
+            where: { id: loanId }
+        })
+
+        if (!loan) return
+
+        const isPaybackLeft = await this.prisma.paybackMonth.findFirst({
+            where: { loanId, paid: false }
+        })
+
+        if (isPaybackLeft) return false
+        return true
+    }
+
+    private async hasOutstandingLoan(customerId: string): Promise<boolean> {
+        const loans = await this.prisma.loanApplication.findMany({
+            where: { customerId },
+            select: { id: true }
+        })
+
+        const remarks = await Promise.all(loans.map(async (loan) => {
+            const isCompleted = await this.hasLoanCompleted(loan.id)
+            return !isCompleted
+        }))
+
+        return remarks.some((remark) => remark)
+    }
+
 
     async addLoanCategory(
         res: Response,
@@ -120,27 +152,17 @@ export class LoanService {
     ) {
         try {
             const customer = await this.prisma.customer.findUnique({
-                where: role === "Admin" ? {
-                    id: customerId
-                } : {
-                    id: customerId,
-                    modminId: sub,
-                }
+                where: role === "Admin" ? { id: customerId } : { id: customerId, modminId: sub }
             })
 
             if (!customer) {
                 return this.response.sendError(res, StatusCodes.NotFound, "Customer not found")
             }
 
-            const isPendingLoanAvailable = await this.prisma.loanApplication.findFirst({
-                where: {
-                    remarks: 'PENDING',
-                    customerId: customer.id
-                }
-            })
+            const isPendingLoanAvailable = await this.hasOutstandingLoan(customerId)
 
             if (isPendingLoanAvailable) {
-                return this.response.sendError(res, StatusCodes.Unauthorized, "Can't apply for a new loan. There is available pending loan for the customer")
+                return this.response.sendError(res, StatusCodes.Unauthorized, "Can't apply for a new loan. There is an available pending loan for the customer")
             }
 
             const {
@@ -186,7 +208,44 @@ export class LoanService {
                 }
             })
 
-            this.response.sendSuccess(res, StatusCodes.OK, { data: application })
+            const paybackMonths: PaybackMonth[] = []
+            let currentDate = new Date(parsedDisbursedDate)
+
+            for (let i = 0; i < loanTenure; i++) {
+                const paybackDate = addMonths(currentDate, i + 1)
+                const year = paybackDate.getFullYear()
+                const month = paybackDate.getMonth()
+
+                const lastDay = lastDayOfMonth(paybackDate)
+
+                const isLeap = isLeapYear(year)
+                const daysInMonth = isLeap ? 29 : lastDay.getDate()
+
+                const amountToBePaid = loanAmount / loanTenure
+
+                const interestPercentage = 5
+                const interest = (amountToBePaid * interestPercentage) / 100
+
+                const payback = await this.prisma.paybackMonth.create({
+                    data: {
+                        paid: false,
+                        interest: interest,
+                        amount_to_be_paid: amountToBePaid,
+                        interest_in_percentage: interestPercentage,
+                        payback_date: new Date(year, month, daysInMonth),
+                        loan: { connect: { id: application.id } },
+                    }
+                })
+
+                paybackMonths.push(payback)
+            }
+
+            this.response.sendSuccess(res, StatusCodes.OK, {
+                data: {
+                    application,
+                    paybackMonths,
+                }
+            })
         } catch (err) {
             this.misc.handleServerError(res, err)
         }
@@ -213,7 +272,6 @@ export class LoanService {
                 applicationFee,
                 equity,
                 disbursedDate,
-                loanTenure,
                 preLoanAmount,
                 preLoanTenure,
                 officeAddress,
@@ -236,7 +294,6 @@ export class LoanService {
                     applicationFee,
                     equity,
                     disbursedDate: parsedDisbursedDate,
-                    loanTenure,
                     preLoanAmount,
                     preLoanTenure,
                     officeAddress,
@@ -254,32 +311,82 @@ export class LoanService {
         }
     }
 
-    async toggleLoanStatus(
+    async fetchPaybacks(
         res: Response,
         loanId: string,
         { sub, role }: ExpressUser,
     ) {
-        const loan = await this.prisma.loanApplication.findUnique({
-            where: role === "Admin" ? {
-                id: loanId
-            } : {
-                modminId: sub,
-                id: loanId
-            }
-        })
+        try {
+            const loan = await this.prisma.loanApplication.findUnique({
+                where: role === "Admin" ? { id: loanId } : { modminId: sub, id: loanId }
+            })
 
-        if (!loan) {
-            return this.response.sendError(res, StatusCodes.UnprocessableEntity, "Loan not found or access denied")
+            if (!loan) {
+                return this.response.sendError(res, StatusCodes.UnprocessableEntity, "Loan not found or access denied")
+            }
+
+            const paybacks = await this.prisma.paybackMonth.findMany({
+                where: { loanId }
+            })
+
+            const currentDate = new Date()
+
+            const paybacksWithRemark = paybacks.map(payback => {
+                let remark = 'UPCOMING'
+
+                if (payback.paid) {
+                    remark = 'PAID'
+                } else if (currentDate > new Date(payback.payback_date)) {
+                    remark = 'OVERDUE'
+                }
+
+                return {
+                    ...payback,
+                    remark: remark,
+                }
+            })
+
+            this.response.sendSuccess(res, StatusCodes.OK, { data: paybacksWithRemark })
+        } catch (err) {
+            this.misc.handleServerError(res, err)
         }
+    }
 
-        const newLoan = await this.prisma.loanApplication.update({
-            where: { id: loanId },
-            data: {
-                remarks: loan.remarks === "PENDING" ? "PAID" : "PENDING"
+    async toggleLoanStatus(
+        res: Response,
+        loanId: string,
+        paybackId: string,
+        { sub, role }: ExpressUser,
+    ) {
+        try {
+            const loan = await this.prisma.loanApplication.findUnique({
+                where: role === "Admin" ? { id: loanId } : { modminId: sub, id: loanId }
+            })
+
+            if (!loan) {
+                return this.response.sendError(res, StatusCodes.UnprocessableEntity, "Loan not found or access denied")
             }
-        })
 
-        this.response.sendSuccess(res, StatusCodes.OK, { data: newLoan })
+            const payback = await this.prisma.paybackMonth.findUnique({
+                where: { loanId, id: paybackId }
+            })
+
+            if (!payback) {
+                return this.response.sendError(res, StatusCodes.NotFound, "Payback month not found")
+            }
+
+            const updatedPayback = await this.prisma.paybackMonth.update({
+                where: { loanId, id: paybackId },
+                data: {
+                    paid: !payback.paid
+                }
+            })
+
+            this.response.sendSuccess(res, StatusCodes.OK, { data: updatedPayback })
+        } catch (error) {
+            console.error("Error toggling loan status:", error)
+            this.response.sendError(res, StatusCodes.InternalServerError, "Failed to toggle loan status")
+        }
     }
 
     async fetchLoans(
@@ -362,8 +469,15 @@ export class LoanService {
 
             const totalPages = Math.ceil(length / limit)
 
+            const loansWithRemark = await Promise.all(loans.map(async (loan) => {
+                return {
+                    ...loan,
+                    remark: await this.hasLoanCompleted(loan.id) ? 'COMPLETED' : 'ONGOING'
+                }
+            }))
+
             this.response.sendSuccess(res, StatusCodes.OK, {
-                data: loans,
+                data: loansWithRemark,
                 metadata: { length, totalPages }
             })
         } catch (err) {
@@ -575,10 +689,12 @@ export class LoanService {
 
         let sn = 0
 
-        loans.forEach(loan => {
+        await Promise.all(loans.map(async (loan) => {
             const customer = loan.customer
             const modmin = customer.modmin
             sn += 1
+
+            const remark = await this.hasLoanCompleted(loan.id) ? "COMPLETED" : "ONGOING"
 
             worksheet.addRow([
                 sn,
@@ -602,12 +718,12 @@ export class LoanService {
                 loan.bankName,
                 loan.bankAccNumber,
                 loan.outstandingLoans,
-                loan.remarks,
+                remark,
                 new Date(loan.createdAt).toDateString(),
                 new Date(loan.updatedAt).toDateString(),
                 loan.disbursedDate ? new Date(loan.disbursedDate).toDateString() : ''
             ])
-        })
+        }))
 
         worksheet.columns.forEach(column => {
             let maxLength = 0
@@ -625,97 +741,142 @@ export class LoanService {
         loanApplicationId: string,
         { sub, role }: ExpressUser,
     ) {
-        const loan = await this.prisma.loanApplication.findUnique({
-            where: role === "Admin" ? {
-                id: loanApplicationId
-            } : {
-                id: loanApplicationId,
-                customer: { modminId: sub }
-            },
-            include: {
-                customer: {
-                    select: {
-                        id: true,
-                        email: true,
-                        surname: true,
-                        telephone: true,
-                        otherNames: true,
-                        modmin: {
-                            select: {
-                                id: true,
-                                email: true,
-                                surname: true,
-                                otherNames: true,
-                            }
-                        },
-                    }
+        try {
+            const loan = await this.prisma.loanApplication.findUnique({
+                where: role === "Admin" ? {
+                    id: loanApplicationId
+                } : {
+                    id: loanApplicationId,
+                    customer: { modminId: sub }
                 },
-            },
-        })
-
-        if (!loan) {
-            return this.response.sendError(res, StatusCodes.NotFound, "Loan Application not found")
-        }
-
-        const workbook = new ExcelJS.Workbook()
-        workbook.creator = 'Omega Loans'
-        const worksheet = workbook.addWorksheet(`Loan - ${loan.customer.surname}`)
-
-        const headerRow = worksheet.addRow([
-            'Customer Email', 'Customer Surname',
-            'Customer Telephone', 'Customer Other Names',
-            'Officer Email', 'Officer Surname', 'Officer Other Names',
-            'Loan Amount', 'Management Fee', 'Application Fee', 'Equity',
-            'Loan Tenure', 'Pre-Loan Amount', 'Pre-Loan Tenure',
-            'Office Address', 'Salary Date', 'Salary Amount', 'Bank Name',
-            'Bank Account Number', 'Outstanding Loans', 'Remarks',
-            'Created At', 'Updated At', 'Disbursed Date'
-        ])
-
-        headerRow.eachCell((cell) => {
-            cell.font = { bold: true, size: 14 }
-            cell.alignment = { vertical: 'middle', horizontal: 'center' }
-        })
-
-        const customer = loan.customer
-        const modmin = customer.modmin
-
-        worksheet.addRow([
-            customer.email,
-            customer.surname,
-            customer.telephone,
-            customer.otherNames,
-            modmin.email,
-            modmin.surname,
-            modmin.otherNames,
-            loan.loanAmount,
-            loan.managementFee,
-            loan.applicationFee,
-            loan.equity,
-            loan.loanTenure,
-            loan.preLoanAmount,
-            loan.preLoanTenure,
-            loan.officeAddress,
-            loan.salaryDate ? new Date(loan.salaryDate).toDateString() : '',
-            loan.salaryAmount,
-            loan.bankName,
-            loan.bankAccNumber,
-            loan.outstandingLoans,
-            loan.remarks,
-            new Date(loan.createdAt).toDateString(),
-            new Date(loan.updatedAt).toDateString(),
-            loan.disbursedDate ? new Date(loan.disbursedDate).toDateString() : ''
-        ])
-
-        worksheet.columns.forEach(column => {
-            let maxLength = 0
-            column.eachCell({ includeEmpty: true }, cell => {
-                maxLength = Math.max(maxLength, cell.value ? cell.value.toString().length : 10)
+                include: {
+                    customer: {
+                        select: {
+                            id: true,
+                            email: true,
+                            surname: true,
+                            telephone: true,
+                            otherNames: true,
+                            modmin: {
+                                select: {
+                                    id: true,
+                                    email: true,
+                                    surname: true,
+                                    otherNames: true,
+                                }
+                            },
+                        }
+                    },
+                    paybacks: true,
+                },
             })
-            column.width = maxLength + 2
-        })
 
-        const buffer = await workbook.xlsx.writeBuffer()
-        return buffer
+            if (!loan) {
+                return this.response.sendError(res, StatusCodes.NotFound, "Loan Application not found")
+            }
+
+            const workbook = new ExcelJS.Workbook()
+            workbook.creator = 'Omega Loans'
+            const worksheet = workbook.addWorksheet(`Loan - ${loan.customer.surname}`)
+
+            const headerRow = worksheet.addRow([
+                'Customer Email', 'Customer Surname',
+                'Customer Telephone', 'Customer Other Names',
+                'Officer Email', 'Officer Surname', 'Officer Other Names',
+                'Loan Amount', 'Management Fee', 'Application Fee', 'Equity',
+                'Loan Tenure', 'Pre-Loan Amount', 'Pre-Loan Tenure',
+                'Office Address', 'Salary Date', 'Salary Amount', 'Bank Name',
+                'Bank Account Number', 'Outstanding Loans', 'Overall Remark',
+                'Created At', 'Updated At', 'Disbursed Date',
+                'Payback Date', 'Amount', 'Interest', 'Paid', 'Remark'
+            ])
+
+            headerRow.eachCell((cell) => {
+                cell.font = { bold: true, size: 14 }
+                cell.alignment = { vertical: 'middle', horizontal: 'center' }
+            })
+
+            const customer = loan.customer
+            const modmin = customer.modmin
+
+            const overallRemark = await this.hasLoanCompleted(loan.id) ? "COMPLETED" : "ONGOING"
+
+            worksheet.addRow([
+                customer.email,
+                customer.surname,
+                customer.telephone,
+                customer.otherNames,
+                modmin.email,
+                modmin.surname,
+                modmin.otherNames,
+                loan.loanAmount,
+                loan.managementFee,
+                loan.applicationFee,
+                loan.equity,
+                loan.loanTenure,
+                loan.preLoanAmount,
+                loan.preLoanTenure,
+                loan.officeAddress,
+                loan.salaryDate ? format(new Date(loan.salaryDate), 'MMM dd, yyyy') : '',
+                loan.salaryAmount,
+                loan.bankName,
+                loan.bankAccNumber,
+                loan.outstandingLoans,
+                overallRemark,
+                format(new Date(loan.createdAt), 'MMM dd, yyyy'),
+                format(new Date(loan.updatedAt), 'MMM dd, yyyy'),
+                loan.disbursedDate ? format(new Date(loan.disbursedDate), 'MMM dd, yyyy') : ''
+            ])
+
+            loan.paybacks.forEach(payback => {
+                const paybackDateFormatted = payback.payback_date ? format(new Date(payback.payback_date), 'MMM dd, yyyy') : ''
+                const paidStatus = payback.paid ? 'Yes' : 'No'
+                const remark = payback.paid ? 'PAID' : (new Date() > new Date(payback.payback_date) ? 'OVERDUE' : 'UPCOMING')
+                worksheet.addRow([
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    paybackDateFormatted,
+                    payback.amount_to_be_paid.toFixed(2),
+                    payback.interest.toFixed(2),
+                    paidStatus,
+                    remark
+                ])
+            })
+
+            worksheet.columns.forEach(column => {
+                let maxLength = 0
+                column.eachCell({ includeEmpty: true }, cell => {
+                    maxLength = Math.max(maxLength, cell.value ? cell.value.toString().length : 10)
+                })
+                column.width = maxLength + 2
+            })
+
+            const buffer = await workbook.xlsx.writeBuffer()
+            return buffer
+        } catch (err) {
+            this.misc.handleServerError(res, err)
+        }
     }
 }

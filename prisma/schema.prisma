@@ -79,29 +79,42 @@ model LoanCategory {
 }
 
 model LoanApplication {
-    id               String      @id @default(auto()) @map("_id") @db.ObjectId
+    id               String         @id @default(auto()) @map("_id") @db.ObjectId
     loanType         LoanType?
-    loanAmount       Float       @default(0.0)
-    managementFee    Float?      @default(0.0)
-    applicationFee   Float?      @default(3000.0)
-    equity           Float?      @default(0.0)
+    loanAmount       Float          @default(0.0)
+    managementFee    Float?         @default(0.0)
+    applicationFee   Float?         @default(3000.0)
+    equity           Float?         @default(0.0)
     disbursedDate    DateTime
     loanTenure       Int
     preLoanAmount    Float?
-    preLoanTenure    String?
+    preLoanTenure    Int?
     officeAddress    String
     salaryDate       DateTime?
     salaryAmount     Float?
     bankName         String?
     bankAccNumber    String?
     outstandingLoans YesNo?
-    remarks          LoanRemark? @default(PENDING)
-    modmin           Modmin      @relation(references: [id], fields: [modminId])
-    modminId         String      @db.ObjectId
-    customer         Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
-    customerId       String      @db.ObjectId
-    createdAt        DateTime    @default(now())
-    updatedAt        DateTime    @updatedAt
+    paybacks         PaybackMonth[]
+    modmin           Modmin         @relation(references: [id], fields: [modminId])
+    modminId         String         @db.ObjectId
+    customer         Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+    customerId       String         @db.ObjectId
+    createdAt        DateTime       @default(now())
+    updatedAt        DateTime       @updatedAt
+}
+
+model PaybackMonth {
+    id                     String          @id @default(auto()) @map("_id") @db.ObjectId
+    paid                   Boolean         @default(false)
+    interest_in_percentage Float           @default(5)
+    interest               Float
+    amount_to_be_paid      Float
+    payback_date           DateTime
+    createdAt              DateTime        @default(now())
+    updatedAt              DateTime        @updatedAt
+    loan                   LoanApplication @relation(fields: [loanId], references: [id])
+    loanId                 String          @db.ObjectId
 }
 
 enum Role {
@@ -136,11 +149,6 @@ enum YesNo {
 enum UserStatus {
     active
     suspended
-}
-
-enum LoanRemark {
-    PAID
-    PENDING
 }
 
 type File {

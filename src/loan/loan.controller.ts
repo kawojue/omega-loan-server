@@ -107,14 +107,15 @@ export class LoanController {
     await this.loanService.editLoanApplication(res, loanApplicationId, body)
   }
 
-  @Patch('/toogle-status/:loanId')
+  @Patch('/toogle-status/:loanId/:paybackId')
   @Roles(Role.Admin, Role.Moderator)
   async toggleLoanStatus(
     @Req() req: IRequest,
     @Res() res: Response,
-    @Param('loanId') loanId: string
+    @Param('loanId') loanId: string,
+    @Param('paybackId') paybackId: string
   ) {
-    await this.loanService.toggleLoanStatus(res, loanId, req.user)
+    await this.loanService.toggleLoanStatus(res, loanId, paybackId, req.user)
   }
 
   @Get('/fetch')
@@ -134,6 +135,16 @@ export class LoanController {
     @Param('loanApplicationId') loanApplicationId: string
   ) {
     await this.loanService.deleteLoanApplication(res, loanApplicationId)
+  }
+
+  @Get('/paybacks/:loanId')
+  @Roles(Role.Admin, Role.Moderator)
+  async fetchPaybacks(
+    @Req() req: IRequest,
+    @Res() res: Response,
+    @Param('loanId') loanId: string
+  ) {
+    await this.loanService.fetchPaybacks(res, loanId, req.user)
   }
 
   @Get('/dropdown')

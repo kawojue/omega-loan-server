@@ -1,8 +1,8 @@
 import { YesNo, LoanType } from '.prisma/client'
-import {
-    IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString
-} from 'class-validator'
 import { ApiProperty, PartialType } from '@nestjs/swagger'
+import {
+    IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min
+} from 'class-validator'
 
 export class LoanApplicationDTO {
     @ApiProperty({ example: 'SalaryLoan' })
@@ -37,6 +37,8 @@ export class LoanApplicationDTO {
     @ApiProperty({ example: 9 })
     @IsNotEmpty()
     @IsString()
+    @Max(12)
+    @Min(1)
     loanTenure: number
 
     @ApiProperty({ example: 1500 })
@@ -44,10 +46,12 @@ export class LoanApplicationDTO {
     @IsNumber()
     preLoanAmount?: number
 
-    @ApiProperty({ example: '6 months' })
+    @ApiProperty({ example: 6 })
     @IsOptional()
     @IsString()
-    preLoanTenure?: string
+    @Max(12)
+    @Min(1)
+    preLoanTenure?: number
 
     @ApiProperty({ example: '123 Main St, City' })
     @IsNotEmpty()

@@ -210,7 +210,7 @@ export class CustomerService {
         })
 
         const currentLoan = await this.prisma.loanApplication.findFirst({
-            where: { customerId, remarks: 'PENDING' },
+            where: { customerId },
             orderBy: { createdAt: 'desc' }
         })
 
