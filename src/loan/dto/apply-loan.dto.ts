@@ -36,7 +36,7 @@ export class LoanApplicationDTO {
 
     @ApiProperty({ example: 9 })
     @IsNotEmpty()
-    @IsString()
+    @IsNumber()
     @Max(12)
     @Min(1)
     loanTenure: number
@@ -48,7 +48,7 @@ export class LoanApplicationDTO {
 
     @ApiProperty({ example: 6 })
     @IsOptional()
-    @IsString()
+    @IsNumber()
     @Max(12)
     @Min(1)
     preLoanTenure?: number
