@@ -596,9 +596,14 @@ export class LoanService {
                 return this.response.sendError(res, StatusCodes.NotFound, "Loan application not found")
             }
 
-            await this.prisma.loanApplication.delete({
-                where: { id: loanApplicationId }
-            })
+            await this.prisma.$transaction([
+                this.prisma.paybackMonth.deleteMany({
+                    where: { loanId: loanApplication.id }
+                }),
+                this.prisma.loanApplication.delete({
+                    where: { id: loanApplicationId }
+                })
+            ])
 
             this.response.sendSuccess(res, StatusCodes.OK, {
                 message: "Loan application deleted successfully"

@@ -169,6 +169,28 @@ export class CustomerService {
                 return this.response.sendError(res, StatusCodes.NotFound, 'Customer not found')
             }
 
+            const loanApplications = await this.prisma.loanApplication.findMany({
+                where: { customerId },
+                select: { id: true }
+            })
+
+            if (loanApplications.length > 0) {
+                for (const loan of loanApplications) {
+                    await this.prisma.paybackMonth.deleteMany({
+                        where: { loanId: loan.id }
+                    })
+                }
+            }
+
+            await this.prisma.$transaction([
+                this.prisma.loanApplication.deleteMany({
+                    where: { customerId }
+                }),
+                this.prisma.customer.delete({
+                    where: { id: customerId },
+                })
+            ])
+
             if (customer.cardImage?.public_id) {
                 await this.cloudinary.delete(customer.cardImage.public_id)
             }
@@ -176,10 +198,6 @@ export class CustomerService {
             if (customer.photograph?.public_id) {
                 await this.cloudinary.delete(customer.photograph.public_id)
             }
-
-            await this.prisma.customer.delete({
-                where: { id: customerId },
-            })
 
             this.response.sendSuccess(res, StatusCodes.NoContent, null)
         } catch (err) {
