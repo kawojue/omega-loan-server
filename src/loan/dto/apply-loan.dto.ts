@@ -13,6 +13,7 @@ export class LoanApplicationDTO {
     @ApiProperty({ example: 50000 })
     @IsNotEmpty()
     @IsNumber()
+    @Min(1)
     loanAmount: number
 
     @ApiProperty({ example: 2500 })
@@ -44,13 +45,14 @@ export class LoanApplicationDTO {
     @ApiProperty({ example: 1500 })
     @IsNotEmpty()
     @IsNumber()
+    @Min(1)
     preLoanAmount?: number
 
     @ApiProperty({ example: 6 })
     @IsOptional()
     @IsNumber()
     @Max(12)
-    @Min(1)
+    @Min(0)
     preLoanTenure?: number
 
     @ApiProperty({ example: '123 Main St, City' })
