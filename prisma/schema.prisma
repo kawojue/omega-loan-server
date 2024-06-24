@@ -105,16 +105,17 @@ model LoanApplication {
 }
 
 model PaybackMonth {
-    id                     String          @id @default(auto()) @map("_id") @db.ObjectId
-    paid                   Boolean         @default(false)
-    interest_in_percentage Float           @default(5)
-    interest               Float
-    amount_to_be_paid      Float
-    payback_date           DateTime
-    createdAt              DateTime        @default(now())
-    updatedAt              DateTime        @updatedAt
-    loan                   LoanApplication @relation(fields: [loanId], references: [id])
-    loanId                 String          @db.ObjectId
+    id                String          @id @default(auto()) @map("_id") @db.ObjectId
+    paid              Boolean         @default(false)
+    rate              Float           @default(5)
+    interest          Float
+    monthly_repayment Float
+    amount            Float
+    payback_date      DateTime
+    createdAt         DateTime        @default(now())
+    updatedAt         DateTime        @updatedAt
+    loan              LoanApplication @relation(fields: [loanId], references: [id])
+    loanId            String          @db.ObjectId
 }
 
 enum Role {

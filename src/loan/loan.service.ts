@@ -148,7 +148,23 @@ export class LoanService {
         res: Response,
         customerId: string,
         { sub, role }: ExpressUser,
-        dto: LoanApplicationDTO
+        {
+            loanType,
+            loanAmount,
+            managementFee,
+            applicationFee,
+            equity,
+            disbursedDate,
+            loanTenure,
+            preLoanAmount,
+            preLoanTenure,
+            officeAddress,
+            salaryDate,
+            salaryAmount,
+            bankName,
+            bankAccNumber,
+            outstandingLoans,
+        }: LoanApplicationDTO
     ) {
         try {
             const customer = await this.prisma.customer.findUnique({
@@ -164,24 +180,6 @@ export class LoanService {
             if (isPendingLoanAvailable) {
                 return this.response.sendError(res, StatusCodes.Unauthorized, "Can't apply for a new loan. There is an available pending loan for the customer")
             }
-
-            const {
-                loanType,
-                loanAmount,
-                managementFee,
-                applicationFee,
-                equity,
-                disbursedDate,
-                loanTenure,
-                preLoanAmount,
-                preLoanTenure,
-                officeAddress,
-                salaryDate,
-                salaryAmount,
-                bankName,
-                bankAccNumber,
-                outstandingLoans,
-            } = dto
 
             const parsedDisbursedDate = new Date(disbursedDate)
             const parsedSalaryDate = salaryDate ? new Date(salaryDate) : null
@@ -221,17 +219,15 @@ export class LoanService {
                 const isLeap = isLeapYear(year)
                 const daysInMonth = isLeap ? 29 : lastDay.getDate()
 
-                const amountToBePaid = loanAmount / loanTenure
+                const amount = loanAmount / loanTenure
 
-                const interestPercentage = 5
-                const interest = (amountToBePaid * interestPercentage) / 100
+                const rate = 5
+                const interest = (amount * rate) / 100
+                const monthly_repayment = interest + amount
 
                 const payback = await this.prisma.paybackMonth.create({
                     data: {
-                        paid: false,
-                        interest: interest,
-                        amount_to_be_paid: amountToBePaid,
-                        interest_in_percentage: interestPercentage,
+                        interest, amount, rate, monthly_repayment,
                         payback_date: new Date(year, month, daysInMonth),
                         loan: { connect: { id: application.id } },
                     }
@@ -793,7 +789,7 @@ export class LoanService {
                 'Office Address', 'Salary Date', 'Salary Amount', 'Bank Name',
                 'Bank Account Number', 'Outstanding Loans', 'Overall Remark',
                 'Created At', 'Updated At', 'Disbursed Date',
-                'Payback Date', 'Amount', 'Interest', 'Paid', 'Remark'
+                'Amount', 'Monthly Repayment', 'Payback Date', 'Interest', 'Paid', 'Remark'
             ])
 
             headerRow.eachCell((cell) => {
@@ -837,6 +833,7 @@ export class LoanService {
                 const paybackDateFormatted = payback.payback_date ? format(new Date(payback.payback_date), 'MMM dd, yyyy') : ''
                 const paidStatus = payback.paid ? 'Yes' : 'No'
                 const remark = payback.paid ? 'PAID' : (new Date() > new Date(payback.payback_date) ? 'OVERDUE' : 'UPCOMING')
+
                 worksheet.addRow([
                     '',
                     '',
@@ -862,8 +859,9 @@ export class LoanService {
                     '',
                     '',
                     '',
+                    payback.amount.toFixed(2),
+                    payback.monthly_repayment.toFixed(2),
                     paybackDateFormatted,
-                    payback.amount_to_be_paid.toFixed(2),
                     payback.interest.toFixed(2),
                     paidStatus,
                     remark
