@@ -45,7 +45,6 @@ export class LoanApplicationDTO {
     @ApiProperty({ example: 1500 })
     @IsNotEmpty()
     @IsNumber()
-    @Min(1)
     preLoanAmount?: number
 
     @ApiProperty({ example: 6 })
